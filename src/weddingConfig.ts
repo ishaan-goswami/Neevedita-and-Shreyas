@@ -41,11 +41,6 @@ export interface WeddingConfig {
     hashtag: string;
   };
   invitationNote: string;
-  auspiciousInvocation: {
-    title: string;
-    subtitle: string;
-    meaning: string;
-  };
   weddingDate: string; // ISO date for countdown
   displayDateText: string;
   locationCity: string;
@@ -82,12 +77,6 @@ export const weddingConfig: WeddingConfig = {
   },
 
   invitationNote: "Together with our families, we joyfully welcome you to our wedding celebrations in Atlanta, Georgia. Please enter your name below to view your personal ceremony schedule and RSVP.",
-
-  auspiciousInvocation: {
-    title: "Om Shri Ganeshaya Namaha",
-    subtitle: "With the divine blessings of our elders and almighty",
-    meaning: "Invoking peace, prosperity, and joyous beginnings as our families unite."
-  },
 
   // Target date for countdown (May 28, 2027)
   weddingDate: "2027-05-28T13:00:00",

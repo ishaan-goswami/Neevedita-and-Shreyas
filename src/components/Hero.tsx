@@ -47,20 +47,11 @@ export const Hero: React.FC = () => {
 
       {/* Main Container */}
       <div className="relative z-10 max-w-4xl mx-auto px-4 text-center flex-1 flex flex-col items-center justify-center">
-        {/* Sacred Invocation (English only) */}
-        <div className="flex items-center justify-center space-x-4 mb-3">
-          <DiyaLamp size={30} />
-          <GaneshaEmblem size={48} />
-          <DiyaLamp size={30} />
-        </div>
-
-        <div className="space-y-1 mb-5">
-          <h2 className="text-maroon font-serif text-base sm:text-xl tracking-widest font-semibold uppercase">
-            {weddingConfig.auspiciousInvocation.title}
-          </h2>
-          <p className="text-xs sm:text-sm text-gold-dark font-serif italic tracking-wider">
-            {weddingConfig.auspiciousInvocation.subtitle}
-          </p>
+        {/* Auspicious Emblem */}
+        <div className="flex items-center justify-center space-x-4 mb-5">
+          <DiyaLamp size={28} />
+          <GaneshaEmblem size={44} />
+          <DiyaLamp size={28} />
         </div>
 
         {/* Traditional Invitation Tagline */}
