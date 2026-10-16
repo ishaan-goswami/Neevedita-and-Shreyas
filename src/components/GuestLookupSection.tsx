@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import confetti from 'canvas-confetti';
 import { weddingConfig, WeddingEvent } from '../weddingConfig';
-import { lookupGuest, GuestProfile, mockGuestsDatabase } from '../guestData';
+import { lookupGuest, GuestProfile } from '../guestData';
 import { MandalaDivider } from './MandalaDivider';
 import {
   Search,
@@ -211,35 +211,6 @@ export const GuestLookupSection: React.FC = () => {
               >
                 <span>View My Events</span>
               </button>
-            </div>
-
-            {/* Quick Demo Test Chips */}
-            <div className="pt-3 border-t border-dashed border-gold/25">
-              <span className="text-[11px] text-charcoal-light uppercase tracking-wider font-semibold block mb-2">
-                Sample Test Search (Click to test):
-              </span>
-              <div className="flex flex-wrap gap-2">
-                {mockGuestsDatabase.map((sample) => (
-                  <button
-                    key={sample.id}
-                    type="button"
-                    onClick={() => {
-                      setSearchInput(sample.name);
-                      handleSearch(sample.name);
-                    }}
-                    className={`text-xs px-3.5 py-1.5 rounded-full border transition-all font-medium flex items-center space-x-1.5 ${
-                      sample.name === 'Goswami'
-                        ? 'bg-maroon text-ivory-50 border-gold shadow-sm hover:bg-maroon-dark'
-                        : 'bg-ivory-50 hover:bg-gold-light/40 border-gold/30 text-charcoal'
-                    }`}
-                  >
-                    <span>{sample.name}</span>
-                    <span className={sample.name === 'Goswami' ? 'text-gold-light text-[11px]' : 'text-gold-dark text-[10px]'}>
-                      ({sample.invitedEventIds.length === 5 ? 'All 5 Events' : `${sample.invitedEventIds.length} Events`})
-                    </span>
-                  </button>
-                ))}
-              </div>
             </div>
           </form>
         </div>
