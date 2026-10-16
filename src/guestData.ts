@@ -30,8 +30,8 @@ export function lookupGuest(query: string): GuestProfile | null {
   const clean = query.trim().toLowerCase().replace(/\s+/g, ' ');
   if (!clean) return null;
 
-  // Strictly match Ishaan Goswami only
-  if (clean === "ishaan goswami" || clean === "ishaan") {
+  // Strictly match "ishaan goswami" only
+  if (clean === "ishaan goswami") {
     return mockGuestsDatabase[0];
   }
 

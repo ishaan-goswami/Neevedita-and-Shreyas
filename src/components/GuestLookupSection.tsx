@@ -233,7 +233,16 @@ export const GuestLookupSection: React.FC = () => {
                 <input
                   type="text"
                   value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setSearchInput(val);
+                    if (activeGuest || notFoundName) {
+                      setActiveGuest(null);
+                      setNotFoundName(null);
+                      setIsRsvpSubmitted(false);
+                      setEventResponses({});
+                    }
+                  }}
                   placeholder="e.g. Ishaan Goswami"
                   className="w-full pl-12 pr-4 py-3 rounded-xl bg-ivory-50 border border-gold/40 focus:border-gold focus:outline-none text-charcoal text-sm sm:text-base transition-colors shadow-inner"
                 />
