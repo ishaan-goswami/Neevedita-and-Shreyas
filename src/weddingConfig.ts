@@ -103,7 +103,7 @@ export const weddingConfig: WeddingConfig = {
       name: "Goswami Residence",
       address: "8205 St. Marlo Fairway Drive, Duluth, GA 30097",
       googleMapsUrl: "https://maps.google.com/?q=8205+St.+Marlo+Fairway+Drive,+Duluth,+GA+30097",
-      note: "Sacred morning Vedic rituals, Pithi ceremony & afternoon henna."
+      note: "Sacred morning Vedic rituals, Pithi ceremony & afternoon mehendi."
     },
     {
       role: "Wedding (Lagna) & Reception",
