@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
-import { Menu, X, Heart, Search } from 'lucide-react';
+import { Menu, X, Heart, Search, Lock } from 'lucide-react';
 import { weddingConfig } from '../weddingConfig';
 
-export const Navbar: React.FC = () => {
+interface NavbarProps {
+  onOpenHostPortal?: () => void;
+}
+
+export const Navbar: React.FC<NavbarProps> = ({ onOpenHostPortal }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navLinks = [
@@ -49,6 +53,19 @@ export const Navbar: React.FC = () => {
                 <span>{link.name}</span>
               </a>
             ))}
+
+            {/* Host Portal Link */}
+            {onOpenHostPortal && (
+              <button
+                onClick={onOpenHostPortal}
+                type="button"
+                className="text-xs sm:text-sm tracking-widest uppercase transition-all duration-200 text-gold-dark hover:text-maroon font-medium flex items-center space-x-1.5 px-3 py-1.5 rounded-full border border-gold/30 hover:border-gold bg-ivory-100"
+                title="Host Portal (Password Protected)"
+              >
+                <Lock className="w-3.5 h-3.5 text-gold-dark" />
+                <span>Host Portal</span>
+              </button>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -82,6 +99,21 @@ export const Navbar: React.FC = () => {
               {link.name}
             </a>
           ))}
+
+          {onOpenHostPortal && (
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                onOpenHostPortal();
+              }}
+              type="button"
+              className="w-full text-left py-2 text-xs uppercase tracking-widest text-gold-dark hover:text-maroon font-semibold flex items-center space-x-2 border-t border-gold/20 pt-3"
+            >
+              <Lock className="w-3.5 h-3.5 text-gold-dark" />
+              <span>Host Portal (PIN 0000)</span>
+            </button>
+          )}
+
           <div className="pt-2 text-center text-xs text-gold-dark font-serif italic flex items-center justify-center space-x-1">
             <Heart className="w-3 h-3 text-vermilion fill-vermilion" />
             <span>{weddingConfig.couple.hashtag}</span>

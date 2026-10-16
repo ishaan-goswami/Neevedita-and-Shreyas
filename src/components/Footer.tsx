@@ -2,9 +2,13 @@ import React from 'react';
 import { weddingConfig } from '../weddingConfig';
 import { TempleSilhouette } from './TempleSilhouette';
 import { GaneshaEmblem } from './GaneshaEmblem';
-import { Heart, ArrowUp } from 'lucide-react';
+import { Heart, ArrowUp, Lock } from 'lucide-react';
 
-export const Footer: React.FC = () => {
+interface FooterProps {
+  onOpenHostPortal?: () => void;
+}
+
+export const Footer: React.FC<FooterProps> = ({ onOpenHostPortal }) => {
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -53,10 +57,23 @@ export const Footer: React.FC = () => {
         </button>
 
         {/* Date / Attribution */}
-        <div className="border-t border-gold/20 pt-6 text-[11px] text-charcoal-light font-sans flex flex-col sm:flex-row items-center justify-between gap-2">
+        <div className="border-t border-gold/20 pt-6 text-[11px] text-charcoal-light font-sans flex flex-col sm:flex-row items-center justify-between gap-3">
           <p>
             {weddingConfig.displayDateText}
           </p>
+
+          {onOpenHostPortal && (
+            <button
+              onClick={onOpenHostPortal}
+              type="button"
+              className="inline-flex items-center space-x-1.5 text-[11px] text-gold-dark hover:text-maroon transition-colors py-1 px-2 rounded-md hover:bg-gold-light/20"
+              title="Enter host PIN (0000) to view headcounts"
+            >
+              <Lock className="w-3 h-3 text-gold-dark" />
+              <span>Host Dashboard (PIN 0000)</span>
+            </button>
+          )}
+
           <p className="flex items-center space-x-1">
             <span>Crafted with</span>
             <Heart className="w-3 h-3 text-vermilion fill-vermilion inline" />

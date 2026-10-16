@@ -1,15 +1,37 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { GuestLookupSection } from './components/GuestLookupSection';
 import { VenueSection } from './components/VenueSection';
 import { Footer } from './components/Footer';
+import { HostPortal } from './components/HostPortal';
 import { MusicPlayer } from './components/MusicPlayer';
 import { FloatingPetals } from './components/FloatingPetals';
 import { Flower } from 'lucide-react';
 
 export function App() {
   const [petalsEnabled, setPetalsEnabled] = useState(true);
+  const [isHostPortalOpen, setIsHostPortalOpen] = useState(false);
+
+  // Sync with #host hash in URL
+  useEffect(() => {
+    const handleHash = () => {
+      if (window.location.hash === '#host') {
+        setIsHostPortalOpen(true);
+      }
+    };
+
+    handleHash();
+    window.addEventListener('hashchange', handleHash);
+    return () => window.removeEventListener('hashchange', handleHash);
+  }, []);
+
+  const handleCloseHostPortal = () => {
+    setIsHostPortalOpen(false);
+    if (window.location.hash === '#host') {
+      history.pushState(null, '', window.location.pathname + window.location.search);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-ivory-100 text-charcoal font-sans relative selection:bg-gold-light selection:text-maroon">
@@ -17,7 +39,7 @@ export function App() {
       <FloatingPetals count={12} enabled={petalsEnabled} />
 
       {/* Top Navigation */}
-      <Navbar />
+      <Navbar onOpenHostPortal={() => setIsHostPortalOpen(true)} />
 
       {/* Main Content */}
       <main>
@@ -32,7 +54,12 @@ export function App() {
       </main>
 
       {/* Footer */}
-      <Footer />
+      <Footer onOpenHostPortal={() => setIsHostPortalOpen(true)} />
+
+      {/* Private Host Portal Overlay (PIN: 0000) */}
+      {isHostPortalOpen && (
+        <HostPortal onClose={handleCloseHostPortal} />
+      )}
 
       {/* Ambient Sitar / Shehnai Music Player */}
       <MusicPlayer />

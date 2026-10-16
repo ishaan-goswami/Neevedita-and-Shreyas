@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import confetti from 'canvas-confetti';
 import { weddingConfig, WeddingEvent } from '../weddingConfig';
 import { lookupGuest, GuestProfile } from '../guestData';
+import { GuestRsvpRecord, RSVP_STORAGE_KEY } from '../types/rsvp';
 import { MandalaDivider } from './MandalaDivider';
 import {
   Search,
@@ -15,6 +16,7 @@ import {
   Sparkles,
   Flower2,
   CheckCircle2,
+  XCircle,
   Send,
   MessageSquare,
   Palette,
@@ -29,9 +31,9 @@ export const GuestLookupSection: React.FC = () => {
   const [searchedName, setSearchedName] = useState('');
   const [notFoundName, setNotFoundName] = useState<string | null>(null);
 
-  // RSVP Form State
-  const [rsvpAttendingEvents, setRsvpAttendingEvents] = useState<string[]>([]);
-  const [guestCount, setGuestCount] = useState(2);
+  // Per-event RSVP Yes / No state: { [eventId]: 'yes' | 'no' }
+  const [eventResponses, setEventResponses] = useState<Record<string, 'yes' | 'no'>>({});
+  const [guestCount, setGuestCount] = useState(1);
   const [dietaryPreference, setDietaryPreference] = useState('Vegetarian');
   const [blessingMessage, setBlessingMessage] = useState('');
   const [isRsvpSubmitted, setIsRsvpSubmitted] = useState(false);
@@ -46,8 +48,14 @@ export const GuestLookupSection: React.FC = () => {
     if (matched) {
       setActiveGuest(matched);
       setNotFoundName(null);
-      setRsvpAttendingEvents(matched.invitedEventIds);
-      setGuestCount(Math.min(2, 1 + (matched.allowedPlusOnes || 0)));
+
+      // Initialize all invited events to 'yes' by default
+      const initial: Record<string, 'yes' | 'no'> = {};
+      matched.invitedEventIds.forEach((id) => {
+        initial[id] = 'yes';
+      });
+      setEventResponses(initial);
+      setGuestCount(1 + (matched.allowedPlusOnes || 0));
       setIsRsvpSubmitted(false);
 
       // Smooth scroll down to personalized results
@@ -78,6 +86,7 @@ export const GuestLookupSection: React.FC = () => {
     setSearchInput('');
     setSearchedName('');
     setIsRsvpSubmitted(false);
+    setEventResponses({});
   };
 
   // Filter events based on active guest invitation
@@ -115,18 +124,23 @@ export const GuestLookupSection: React.FC = () => {
   const handleRsvpSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    const newRecord: GuestRsvpRecord = {
+      id: `rsvp-${Date.now()}`,
+      guestName: activeGuest?.name || searchedName,
+      guestCount,
+      eventResponses,
+      dietaryPreference,
+      blessingMessage,
+      submittedAt: new Date().toLocaleString(),
+    };
+
     try {
-      const existing = JSON.parse(localStorage.getItem('wedding_rsvps') || '[]');
-      const newEntry = {
-        id: Date.now().toString(),
-        guestName: activeGuest?.name || searchedName,
-        guestCount,
-        dietaryPreference,
-        attendingEvents: rsvpAttendingEvents,
-        blessingMessage,
-        submittedAt: new Date().toLocaleString(),
-      };
-      localStorage.setItem('wedding_rsvps', JSON.stringify([newEntry, ...existing]));
+      const existing: GuestRsvpRecord[] = JSON.parse(localStorage.getItem(RSVP_STORAGE_KEY) || '[]');
+      // Replace existing submission for this guest if updated, or prepend
+      const filtered = existing.filter(
+        (r) => r.guestName.toLowerCase() !== newRecord.guestName.toLowerCase()
+      );
+      localStorage.setItem(RSVP_STORAGE_KEY, JSON.stringify([newRecord, ...filtered]));
     } catch {
       // ignore
     }
@@ -146,8 +160,12 @@ export const GuestLookupSection: React.FC = () => {
 
   const generateWhatsAppUrl = () => {
     const name = activeGuest?.name || searchedName;
-    const eventNames = weddingConfig.events
-      .filter((e) => rsvpAttendingEvents.includes(e.id))
+    const yesEvents = weddingConfig.events
+      .filter((e) => eventResponses[e.id] === 'yes')
+      .map((e) => e.name)
+      .join(', ');
+    const noEvents = weddingConfig.events
+      .filter((e) => eventResponses[e.id] === 'no')
       .map((e) => e.name)
       .join(', ');
 
@@ -156,8 +174,9 @@ export const GuestLookupSection: React.FC = () => {
       `📍 Location: Atlanta, Georgia (May 28-30)\n` +
       `👤 Guest Name: ${name}\n` +
       `👥 Total Attending: ${guestCount}\n` +
+      `✅ Attending Ceremonies: ${yesEvents || 'None'}\n` +
+      (noEvents ? `❌ Unable to Attend: ${noEvents}\n` : '') +
       `🍛 Dietary Preference: ${dietaryPreference}\n` +
-      `🎉 Ceremonies Attending: ${eventNames || 'Regretfully Declining'}\n` +
       `💌 Message: ${blessingMessage || 'Looking forward to celebrating with you!'}`
     );
     return `https://wa.me/${weddingConfig.rsvp.contactPhone}?text=${text}`;
@@ -176,7 +195,7 @@ export const GuestLookupSection: React.FC = () => {
           </h2>
           <MandalaDivider className="my-5" />
           <p className="text-sm sm:text-base text-charcoal-light font-serif leading-relaxed">
-            Please enter your name below to view your invitations to Garba, Vidhi, Lagna, Reception, and Mehendi.
+            Please enter your full name below to access your ceremony schedule and RSVP for each event.
           </p>
         </div>
 
@@ -199,7 +218,7 @@ export const GuestLookupSection: React.FC = () => {
                   type="text"
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
-                  placeholder="e.g. Goswami"
+                  placeholder="e.g. Ishaan Goswami"
                   className="w-full pl-12 pr-4 py-3 rounded-xl bg-ivory-50 border border-gold/40 focus:border-gold focus:outline-none text-charcoal text-sm sm:text-base transition-colors shadow-inner"
                 />
               </div>
@@ -230,7 +249,7 @@ export const GuestLookupSection: React.FC = () => {
             </p>
 
             <p className="text-xs sm:text-sm text-charcoal-light font-serif leading-relaxed mb-6">
-              Please double-check the spelling, or try entering your last or family name (e.g. "Goswami"). If you believe this is an error, please reach out directly to Shreyas or Neevedita.
+              Please double-check the spelling (try searching by "Ishaan Goswami" or "Goswami"). If you believe this is an error, please reach out directly to Shreyas or Neevedita.
             </p>
 
             <button
@@ -292,117 +311,171 @@ export const GuestLookupSection: React.FC = () => {
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h3 className="text-xl sm:text-2xl font-serif text-charcoal">
-                    Your Ceremony Schedule & Invitations
+                    Your Ceremony Schedule & In-Card RSVP
                   </h3>
                   <p className="text-xs sm:text-sm text-charcoal-light font-serif">
-                    Ceremonies arranged in Atlanta, Georgia across May 28 – 30.
+                    Please select <strong>Yes (Attending)</strong> or <strong>No (Decline)</strong> inside each ceremony card below.
                   </p>
                 </div>
               </div>
 
               <div className="grid md:grid-cols-2 gap-6">
-                {invitedEvents.map((ev, idx) => (
-                  <div
-                    key={ev.id}
-                    className="relative flex flex-col justify-between bg-ivory-50 rounded-2xl border border-gold/35 shadow-sm hover:border-gold/70 transition-all p-6 sm:p-7"
-                  >
-                    {/* Top color strip */}
+                {invitedEvents.map((ev, idx) => {
+                  const isYes = eventResponses[ev.id] === 'yes';
+
+                  return (
                     <div
-                      className="absolute top-0 left-0 right-0 h-1.5 rounded-t-2xl"
-                      style={{ backgroundColor: ev.dressCodeColorHex }}
-                    />
+                      key={ev.id}
+                      className={`relative flex flex-col justify-between bg-ivory-50 rounded-2xl border transition-all p-6 sm:p-7 ${
+                        isYes
+                          ? 'border-gold/60 shadow-md ring-1 ring-gold/30'
+                          : 'border-gold/25 shadow-xs opacity-85'
+                      }`}
+                    >
+                      {/* Top color strip */}
+                      <div
+                        className="absolute top-0 left-0 right-0 h-1.5 rounded-t-2xl"
+                        style={{ backgroundColor: ev.dressCodeColorHex }}
+                      />
 
-                    <div>
-                      {/* Header */}
-                      <div className="flex items-center justify-between mb-3 pt-1">
-                        <div className="flex items-center space-x-2">
-                          <div className="w-9 h-9 rounded-full bg-ivory-100 border border-gold/30 flex items-center justify-center">
-                            {getEventIcon(ev.iconName)}
+                      <div>
+                        {/* Header */}
+                        <div className="flex items-center justify-between mb-3 pt-1">
+                          <div className="flex items-center space-x-2">
+                            <div className="w-9 h-9 rounded-full bg-ivory-100 border border-gold/30 flex items-center justify-center">
+                              {getEventIcon(ev.iconName)}
+                            </div>
+                            <div>
+                              <span className="text-[10px] uppercase tracking-wider text-gold-dark font-semibold">
+                                Ceremony 0{idx + 1}
+                              </span>
+                              <p className="text-xs text-charcoal-light font-serif">
+                                {ev.subtitle}
+                              </p>
+                            </div>
                           </div>
-                          <div>
-                            <span className="text-[10px] uppercase tracking-wider text-gold-dark font-semibold">
-                              Ceremony 0{idx + 1}
+
+                          {ev.muhuratNote && (
+                            <span className="px-2 py-0.5 rounded-full bg-gold-light/30 border border-gold/30 text-[10px] font-serif font-semibold text-charcoal">
+                              {ev.muhuratNote}
                             </span>
-                            <p className="text-xs text-charcoal-light font-serif">
-                              {ev.subtitle}
-                            </p>
+                          )}
+                        </div>
+
+                        <h4 className="text-2xl sm:text-3xl font-serif text-charcoal mb-2">
+                          {ev.name}
+                        </h4>
+
+                        <p className="text-xs text-charcoal-light font-serif leading-relaxed mb-4">
+                          {ev.description}
+                        </p>
+
+                        {/* Timings and Venue in Atlanta */}
+                        <div className="space-y-2 text-xs text-charcoal py-3 border-t border-b border-gold/20 mb-4">
+                          <div className="flex items-center space-x-2">
+                            <Calendar className="w-3.5 h-3.5 text-maroon" />
+                            <span className="font-medium">{ev.date}</span>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Clock className="w-3.5 h-3.5 text-gold-dark" />
+                            <span>{ev.time}</span>
+                          </div>
+                          <div className="flex items-start space-x-2">
+                            <MapPin className="w-3.5 h-3.5 text-maroon mt-0.5 flex-shrink-0" />
+                            <div>
+                              <span className="font-medium">{ev.hallName}</span>
+                              <span className="text-charcoal-light block">{ev.venueName} • {ev.cityState}</span>
+                            </div>
                           </div>
                         </div>
 
-                        {ev.muhuratNote && (
-                          <span className="px-2 py-0.5 rounded-full bg-gold-light/30 border border-gold/30 text-[10px] font-serif font-semibold text-charcoal">
-                            {ev.muhuratNote}
-                          </span>
-                        )}
+                        {/* Dress Code */}
+                        <div className="p-3 rounded-xl bg-ivory-100/70 border border-gold/25 mb-4 text-xs">
+                          <div className="flex items-center space-x-1.5 mb-0.5">
+                            <Palette className="w-3.5 h-3.5 text-gold-dark" />
+                            <span className="text-[10px] uppercase tracking-wider font-semibold text-gold-dark">
+                              Suggested Attire
+                            </span>
+                          </div>
+                          <p className="font-medium text-charcoal">{ev.dressCode}</p>
+                          <p className="text-[11px] text-charcoal-light font-serif italic">{ev.dressCodeSuggestion}</p>
+                        </div>
+
+                        {/* ================= IN-CARD RSVP YES / NO TOGGLE ================= */}
+                        <div className="p-3 rounded-xl bg-ivory-100/90 border border-gold/30 mb-4">
+                          <div className="flex items-center justify-between gap-2">
+                            <div>
+                              <span className="text-xs uppercase tracking-wider font-semibold text-charcoal block">
+                                RSVP for {ev.name}
+                              </span>
+                              <span className="text-[10px] text-charcoal-light font-serif">
+                                Your Status: {isYes ? (
+                                  <strong className="text-emerald-700">Attending (Yes)</strong>
+                                ) : (
+                                  <strong className="text-rose-700">Decline (No)</strong>
+                                )}
+                              </span>
+                            </div>
+
+                            <div className="inline-flex rounded-xl p-1 bg-ivory-50 border border-gold/30 shadow-2xs">
+                              <button
+                                type="button"
+                                onClick={() => setEventResponses((prev) => ({ ...prev, [ev.id]: 'yes' }))}
+                                className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1 transition-all ${
+                                  isYes
+                                    ? 'bg-emerald-600 text-white shadow-xs'
+                                    : 'text-charcoal-light hover:text-emerald-700'
+                                }`}
+                              >
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                <span>Yes</span>
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => setEventResponses((prev) => ({ ...prev, [ev.id]: 'no' }))}
+                                className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1 transition-all ${
+                                  !isYes
+                                    ? 'bg-rose-600 text-white shadow-xs'
+                                    : 'text-charcoal-light hover:text-rose-700'
+                                }`}
+                              >
+                                <XCircle className="w-3.5 h-3.5" />
+                                <span>No</span>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
                       </div>
 
-                      <h4 className="text-2xl sm:text-3xl font-serif text-charcoal mb-2">
-                        {ev.name}
-                      </h4>
-
-                      <p className="text-xs text-charcoal-light font-serif leading-relaxed mb-4">
-                        {ev.description}
-                      </p>
-
-                      {/* Timings and Venue in Atlanta */}
-                      <div className="space-y-2 text-xs text-charcoal py-3 border-t border-b border-gold/20 mb-4">
-                        <div className="flex items-center space-x-2">
+                      {/* Calendar & Map Directions buttons */}
+                      <div className="flex gap-2 pt-1">
+                        <a
+                          href={createGoogleCalendarUrl(ev)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex-1 inline-flex items-center justify-center space-x-1 px-3 py-2 rounded-lg bg-ivory-100 hover:bg-gold-light/30 border border-gold/40 text-xs text-charcoal font-medium transition-colors"
+                        >
                           <Calendar className="w-3.5 h-3.5 text-maroon" />
-                          <span className="font-medium">{ev.date}</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Clock className="w-3.5 h-3.5 text-gold-dark" />
-                          <span>{ev.time}</span>
-                        </div>
-                        <div className="flex items-start space-x-2">
-                          <MapPin className="w-3.5 h-3.5 text-maroon mt-0.5 flex-shrink-0" />
-                          <div>
-                            <span className="font-medium">{ev.hallName}</span>
-                            <span className="text-charcoal-light block">{ev.venueName} • {ev.cityState}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Dress Code */}
-                      <div className="p-3 rounded-xl bg-ivory-100/70 border border-gold/25 mb-4 text-xs">
-                        <div className="flex items-center space-x-1.5 mb-0.5">
-                          <Palette className="w-3.5 h-3.5 text-gold-dark" />
-                          <span className="text-[10px] uppercase tracking-wider font-semibold text-gold-dark">
-                            Suggested Attire
-                          </span>
-                        </div>
-                        <p className="font-medium text-charcoal">{ev.dressCode}</p>
-                        <p className="text-[11px] text-charcoal-light font-serif italic">{ev.dressCodeSuggestion}</p>
+                          <span>Add to Calendar</span>
+                        </a>
+                        <a
+                          href={ev.googleMapsUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center justify-center space-x-1 px-3 py-2 rounded-lg bg-ivory-100 hover:bg-gold-light/30 border border-gold/40 text-xs text-charcoal font-medium transition-colors"
+                        >
+                          <span>Directions</span>
+                          <ExternalLink className="w-3.5 h-3.5 text-gold-dark" />
+                        </a>
                       </div>
                     </div>
-
-                    {/* Action buttons */}
-                    <div className="flex gap-2 pt-1">
-                      <a
-                        href={createGoogleCalendarUrl(ev)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex-1 inline-flex items-center justify-center space-x-1 px-3 py-2 rounded-lg bg-ivory-100 hover:bg-gold-light/30 border border-gold/40 text-xs text-charcoal font-medium transition-colors"
-                      >
-                        <Calendar className="w-3.5 h-3.5 text-maroon" />
-                        <span>Add to Calendar</span>
-                      </a>
-                      <a
-                        href={ev.googleMapsUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center justify-center space-x-1 px-3 py-2 rounded-lg bg-ivory-100 hover:bg-gold-light/30 border border-gold/40 text-xs text-charcoal font-medium transition-colors"
-                      >
-                        <span>Directions</span>
-                        <ExternalLink className="w-3.5 h-3.5 text-gold-dark" />
-                      </a>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
-            {/* ================= PERSONALIZED RSVP SECTION ================= */}
+            {/* ================= CONFIRM & SUBMIT RSVP SECTION ================= */}
             <div id="guest-rsvp" className="bg-ivory-50 rounded-2xl border-2 border-gold/40 shadow-sm p-6 sm:p-10">
               {isRsvpSubmitted ? (
                 <div className="text-center py-8 space-y-5 animate-fadeIn">
@@ -410,10 +483,10 @@ export const GuestLookupSection: React.FC = () => {
                     <CheckCircle2 className="w-7 h-7" />
                   </div>
                   <h3 className="text-2xl sm:text-3xl font-serif text-charcoal">
-                    RSVP Received for {activeGuest.name}!
+                    RSVP Recorded for {activeGuest.name}!
                   </h3>
                   <p className="text-sm font-serif text-charcoal-light max-w-md mx-auto">
-                    Thank you for responding. Shreyas, Neevedita, and our families cannot wait to celebrate with you in Atlanta!
+                    Thank you for responding. Your ceremony attendance choices have been saved and sent to the host headcount!
                   </p>
 
                   <div className="pt-2 max-w-sm mx-auto space-y-3">
@@ -440,55 +513,14 @@ export const GuestLookupSection: React.FC = () => {
                 <form onSubmit={handleRsvpSubmit} className="space-y-6">
                   <div className="border-b border-gold/25 pb-4">
                     <p className="text-xs uppercase tracking-widest text-gold-dark font-semibold mb-1">
-                      RSVP Response
+                      Finalize Your RSVP
                     </p>
                     <h3 className="text-2xl sm:text-3xl font-serif text-charcoal font-normal">
-                      Confirm Attendance for {activeGuest.name}
+                      Confirm Response for {activeGuest.name}
                     </h3>
                     <p className="text-xs sm:text-sm text-charcoal-light font-serif mt-1">
-                      Kindly confirm by {weddingConfig.rsvp.deadline}
+                      Check your Yes/No choices in the cards above, then confirm your details below by {weddingConfig.rsvp.deadline}.
                     </p>
-                  </div>
-
-                  {/* Which events will you attend */}
-                  <div>
-                    <label className="block text-xs uppercase tracking-wider font-semibold text-charcoal mb-2">
-                      Please check the ceremonies you will be attending:
-                    </label>
-                    <div className="space-y-2">
-                      {invitedEvents.map((ev) => {
-                        const isChecked = rsvpAttendingEvents.includes(ev.id);
-                        return (
-                          <label
-                            key={ev.id}
-                            className={`flex items-center space-x-3 p-3 rounded-xl border transition-all cursor-pointer ${
-                              isChecked
-                                ? 'bg-gold-light/25 border-gold text-charcoal'
-                                : 'bg-ivory-100/70 border-gold/20 text-charcoal-light'
-                            }`}
-                          >
-                            <input
-                              type="checkbox"
-                              checked={isChecked}
-                              onChange={() => {
-                                setRsvpAttendingEvents((prev) =>
-                                  prev.includes(ev.id)
-                                    ? prev.filter((id) => id !== ev.id)
-                                    : [...prev, ev.id]
-                                );
-                              }}
-                              className="w-4 h-4 rounded text-maroon accent-maroon focus:ring-gold"
-                            />
-                            <div className="flex-1 text-xs sm:text-sm">
-                              <span className="font-semibold text-charcoal">{ev.name}</span>
-                              <span className="text-gold-dark text-xs block sm:inline sm:ml-2">
-                                ({ev.date.split(',')[0]} • {ev.time})
-                              </span>
-                            </div>
-                          </label>
-                        );
-                      })}
-                    </div>
                   </div>
 
                   {/* Attendees Count & Dietary */}
@@ -502,9 +534,9 @@ export const GuestLookupSection: React.FC = () => {
                         onChange={(e) => setGuestCount(Number(e.target.value))}
                         className="w-full px-4 py-2.5 rounded-xl bg-ivory-100 border border-gold/30 text-charcoal text-sm focus:border-gold focus:outline-none"
                       >
-                        {Array.from({ length: 1 + (activeGuest.allowedPlusOnes || 3) }).map((_, i) => (
-                          <option key={i + 1} value={i + 1}>
-                            {i + 1} {i === 0 ? 'Person' : 'People'}
+                        {[1, 2, 3, 4, 5].map((n) => (
+                          <option key={n} value={n}>
+                            {n} {n === 1 ? 'Guest' : 'Guests'}
                           </option>
                         ))}
                       </select>
@@ -544,10 +576,10 @@ export const GuestLookupSection: React.FC = () => {
                   {/* Submit RSVP */}
                   <button
                     type="submit"
-                    className="w-full py-3.5 rounded-full bg-maroon hover:bg-maroon-dark text-ivory-50 text-xs sm:text-sm font-semibold tracking-widest uppercase shadow transition-all duration-200 border border-gold/40 flex items-center justify-center space-x-2"
+                    className="w-full py-4 rounded-full bg-maroon hover:bg-maroon-dark text-ivory-50 text-xs sm:text-sm font-semibold tracking-widest uppercase shadow-md hover:shadow-lg transition-all duration-200 border border-gold/40 flex items-center justify-center space-x-2"
                   >
                     <Send className="w-4 h-4 text-gold-light" />
-                    <span>Submit RSVP Response</span>
+                    <span>Submit Complete RSVP</span>
                   </button>
                 </form>
               )}
