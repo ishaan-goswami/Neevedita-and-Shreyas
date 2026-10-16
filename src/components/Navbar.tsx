@@ -110,7 +110,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenHostPortal }) => {
               className="w-full text-left py-2 text-xs uppercase tracking-widest text-gold-dark hover:text-maroon font-semibold flex items-center space-x-2 border-t border-gold/20 pt-3"
             >
               <Lock className="w-3.5 h-3.5 text-gold-dark" />
-              <span>Host Portal (PIN 0000)</span>
+              <span>Host Portal</span>
             </button>
           )}
 

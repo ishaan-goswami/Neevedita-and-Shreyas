@@ -32,11 +32,17 @@ export const GuestLookupSection: React.FC = () => {
   const [notFoundName, setNotFoundName] = useState<string | null>(null);
 
   // Per-event RSVP Yes / No state: { [eventId]: 'yes' | 'no' }
+  // Defaults to empty so the guest MUST explicitly choose Yes or No
   const [eventResponses, setEventResponses] = useState<Record<string, 'yes' | 'no'>>({});
   const [guestCount, setGuestCount] = useState(1);
-  const [dietaryPreference, setDietaryPreference] = useState('Vegetarian');
   const [blessingMessage, setBlessingMessage] = useState('');
   const [isRsvpSubmitted, setIsRsvpSubmitted] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
+
+  const handleSelectEventResponse = (eventId: string, response: 'yes' | 'no') => {
+    setEventResponses((prev) => ({ ...prev, [eventId]: response }));
+    setValidationError(null);
+  };
 
   const handleSearch = (nameToSearch?: string) => {
     const query = (nameToSearch !== undefined ? nameToSearch : searchInput).trim();
@@ -49,14 +55,11 @@ export const GuestLookupSection: React.FC = () => {
       setActiveGuest(matched);
       setNotFoundName(null);
 
-      // Initialize all invited events to 'yes' by default
-      const initial: Record<string, 'yes' | 'no'> = {};
-      matched.invitedEventIds.forEach((id) => {
-        initial[id] = 'yes';
-      });
-      setEventResponses(initial);
+      // Do NOT default to 'yes' - start empty so the user picks what they want
+      setEventResponses({});
       setGuestCount(1 + (matched.allowedPlusOnes || 0));
       setIsRsvpSubmitted(false);
+      setValidationError(null);
 
       // Smooth scroll down to personalized results
       setTimeout(() => {
@@ -70,6 +73,7 @@ export const GuestLookupSection: React.FC = () => {
       setActiveGuest(null);
       setNotFoundName(query);
       setIsRsvpSubmitted(false);
+      setValidationError(null);
 
       setTimeout(() => {
         const notFoundEl = document.getElementById('invitation-not-found');
@@ -87,6 +91,7 @@ export const GuestLookupSection: React.FC = () => {
     setSearchedName('');
     setIsRsvpSubmitted(false);
     setEventResponses({});
+    setValidationError(null);
   };
 
   // Filter events based on active guest invitation
@@ -124,12 +129,23 @@ export const GuestLookupSection: React.FC = () => {
   const handleRsvpSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Verify all invited events have an explicit response
+    const unselectedEvents = invitedEvents.filter((ev) => !eventResponses[ev.id]);
+    if (unselectedEvents.length > 0) {
+      const names = unselectedEvents.map((ev) => ev.name).join(', ');
+      setValidationError(`Please select "Yes" or "No" for: ${names}`);
+      const firstEl = document.getElementById(`event-card-${unselectedEvents[0].id}`);
+      if (firstEl) {
+        firstEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      return;
+    }
+
     const newRecord: GuestRsvpRecord = {
       id: `rsvp-${Date.now()}`,
       guestName: activeGuest?.name || searchedName,
       guestCount,
       eventResponses,
-      dietaryPreference,
       blessingMessage,
       submittedAt: new Date().toLocaleString(),
     };
@@ -146,6 +162,7 @@ export const GuestLookupSection: React.FC = () => {
     }
 
     setIsRsvpSubmitted(true);
+    setValidationError(null);
     try {
       confetti({
         particleCount: 130,
@@ -176,7 +193,6 @@ export const GuestLookupSection: React.FC = () => {
       `👥 Total Attending: ${guestCount}\n` +
       `✅ Attending Ceremonies: ${yesEvents || 'None'}\n` +
       (noEvents ? `❌ Unable to Attend: ${noEvents}\n` : '') +
-      `🍛 Dietary Preference: ${dietaryPreference}\n` +
       `💌 Message: ${blessingMessage || 'Looking forward to celebrating with you!'}`
     );
     return `https://wa.me/${weddingConfig.rsvp.contactPhone}?text=${text}`;
@@ -321,15 +337,20 @@ export const GuestLookupSection: React.FC = () => {
 
               <div className="grid md:grid-cols-2 gap-6">
                 {invitedEvents.map((ev, idx) => {
-                  const isYes = eventResponses[ev.id] === 'yes';
+                  const currentResponse = eventResponses[ev.id]; // 'yes' | 'no' | undefined
+                  const isYes = currentResponse === 'yes';
+                  const isNo = currentResponse === 'no';
 
                   return (
                     <div
                       key={ev.id}
+                      id={`event-card-${ev.id}`}
                       className={`relative flex flex-col justify-between bg-ivory-50 rounded-2xl border transition-all p-6 sm:p-7 ${
                         isYes
-                          ? 'border-gold/60 shadow-md ring-1 ring-gold/30'
-                          : 'border-gold/25 shadow-xs opacity-85'
+                          ? 'border-emerald-600/50 shadow-md ring-1 ring-emerald-500/20'
+                          : isNo
+                          ? 'border-rose-400/50 shadow-xs opacity-75'
+                          : 'border-gold/40 shadow-xs hover:border-gold'
                       }`}
                     >
                       {/* Top color strip */}
@@ -402,29 +423,45 @@ export const GuestLookupSection: React.FC = () => {
                         </div>
 
                         {/* ================= IN-CARD RSVP YES / NO TOGGLE ================= */}
-                        <div className="p-3 rounded-xl bg-ivory-100/90 border border-gold/30 mb-4">
-                          <div className="flex items-center justify-between gap-2">
+                        <div
+                          className={`p-3.5 rounded-xl border transition-all mb-4 ${
+                            isYes
+                              ? 'bg-emerald-50/60 border-emerald-300'
+                              : isNo
+                              ? 'bg-rose-50/60 border-rose-300'
+                              : 'bg-ivory-100/90 border-gold/40'
+                          }`}
+                        >
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                             <div>
                               <span className="text-xs uppercase tracking-wider font-semibold text-charcoal block">
                                 RSVP for {ev.name}
                               </span>
-                              <span className="text-[10px] text-charcoal-light font-serif">
-                                Your Status: {isYes ? (
-                                  <strong className="text-emerald-700">Attending (Yes)</strong>
+                              <span className="text-[11px] font-serif">
+                                {isYes ? (
+                                  <span className="text-emerald-700 font-semibold inline-flex items-center gap-1">
+                                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 inline" /> Attending (Yes)
+                                  </span>
+                                ) : isNo ? (
+                                  <span className="text-rose-700 font-semibold inline-flex items-center gap-1">
+                                    <XCircle className="w-3.5 h-3.5 text-rose-600 inline" /> Decline (No)
+                                  </span>
                                 ) : (
-                                  <strong className="text-rose-700">Decline (No)</strong>
+                                  <span className="text-amber-800 font-serif italic font-medium">
+                                    * Please choose Yes or No
+                                  </span>
                                 )}
                               </span>
                             </div>
 
-                            <div className="inline-flex rounded-xl p-1 bg-ivory-50 border border-gold/30 shadow-2xs">
+                            <div className="inline-flex rounded-xl p-1 bg-ivory-50 border border-gold/30 shadow-2xs self-start sm:self-auto">
                               <button
                                 type="button"
-                                onClick={() => setEventResponses((prev) => ({ ...prev, [ev.id]: 'yes' }))}
-                                className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1 transition-all ${
+                                onClick={() => handleSelectEventResponse(ev.id, 'yes')}
+                                className={`px-4 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1.5 transition-all ${
                                   isYes
                                     ? 'bg-emerald-600 text-white shadow-xs'
-                                    : 'text-charcoal-light hover:text-emerald-700'
+                                    : 'text-charcoal hover:text-emerald-700 hover:bg-emerald-50'
                                 }`}
                               >
                                 <CheckCircle2 className="w-3.5 h-3.5" />
@@ -433,11 +470,11 @@ export const GuestLookupSection: React.FC = () => {
 
                               <button
                                 type="button"
-                                onClick={() => setEventResponses((prev) => ({ ...prev, [ev.id]: 'no' }))}
-                                className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1 transition-all ${
-                                  !isYes
+                                onClick={() => handleSelectEventResponse(ev.id, 'no')}
+                                className={`px-4 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1.5 transition-all ${
+                                  isNo
                                     ? 'bg-rose-600 text-white shadow-xs'
-                                    : 'text-charcoal-light hover:text-rose-700'
+                                    : 'text-charcoal hover:text-rose-700 hover:bg-rose-50'
                                 }`}
                               >
                                 <XCircle className="w-3.5 h-3.5" />
@@ -523,40 +560,25 @@ export const GuestLookupSection: React.FC = () => {
                     </p>
                   </div>
 
-                  {/* Attendees Count & Dietary */}
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs uppercase tracking-wider font-semibold text-charcoal mb-2">
-                        Total Number of Attendees
-                      </label>
-                      <select
-                        value={guestCount}
-                        onChange={(e) => setGuestCount(Number(e.target.value))}
-                        className="w-full px-4 py-2.5 rounded-xl bg-ivory-100 border border-gold/30 text-charcoal text-sm focus:border-gold focus:outline-none"
-                      >
-                        {[1, 2, 3, 4, 5].map((n) => (
-                          <option key={n} value={n}>
-                            {n} {n === 1 ? 'Guest' : 'Guests'}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs uppercase tracking-wider font-semibold text-charcoal mb-2">
-                        Dietary Preference
-                      </label>
-                      <select
-                        value={dietaryPreference}
-                        onChange={(e) => setDietaryPreference(e.target.value)}
-                        className="w-full px-4 py-2.5 rounded-xl bg-ivory-100 border border-gold/30 text-charcoal text-sm focus:border-gold focus:outline-none"
-                      >
-                        <option value="Vegetarian">Pure Vegetarian</option>
-                        <option value="Jain Vegetarian">Jain Vegetarian (No root veggies)</option>
-                        <option value="Vegan">Vegan</option>
-                        <option value="No Restrictions">No Restrictions</option>
-                      </select>
-                    </div>
+                  {/* Attendees Count */}
+                  <div>
+                    <label className="block text-xs uppercase tracking-wider font-semibold text-charcoal mb-2">
+                      Total Number of Attendees
+                    </label>
+                    <select
+                      value={guestCount}
+                      onChange={(e) => setGuestCount(Number(e.target.value))}
+                      className="w-full px-4 py-2.5 rounded-xl bg-ivory-100 border border-gold/30 text-charcoal text-sm focus:border-gold focus:outline-none"
+                    >
+                      {[1, 2, 3, 4, 5].map((n) => (
+                        <option key={n} value={n}>
+                          {n} {n === 1 ? 'Guest' : 'Guests'}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="text-[11px] text-gold-dark font-serif italic mt-1.5">
+                      All wedding celebrations feature traditional, 100% vegetarian culinary spreads.
+                    </p>
                   </div>
 
                   {/* Blessings message */}
@@ -572,6 +594,14 @@ export const GuestLookupSection: React.FC = () => {
                       className="w-full px-4 py-2.5 rounded-xl bg-ivory-100 border border-gold/30 text-charcoal text-sm focus:border-gold focus:outline-none resize-none font-serif"
                     />
                   </div>
+
+                  {/* Validation Error Banner */}
+                  {validationError && (
+                    <div className="p-4 rounded-xl bg-rose-50 border border-rose-300 text-rose-800 text-xs sm:text-sm font-medium flex items-center space-x-2 animate-fadeIn">
+                      <XCircle className="w-5 h-5 flex-shrink-0 text-rose-600" />
+                      <span>{validationError}</span>
+                    </div>
+                  )}
 
                   {/* Submit RSVP */}
                   <button

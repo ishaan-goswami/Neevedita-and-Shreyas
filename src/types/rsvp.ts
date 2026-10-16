@@ -3,7 +3,7 @@ export interface GuestRsvpRecord {
   guestName: string;
   guestCount: number;
   eventResponses: Record<string, 'yes' | 'no'>; // e.g. { mehendi: 'yes', garba: 'yes', vidhi: 'yes', lagna: 'yes', reception: 'yes' }
-  dietaryPreference: string;
+  dietaryPreference?: string;
   blessingMessage?: string;
   submittedAt: string;
 }

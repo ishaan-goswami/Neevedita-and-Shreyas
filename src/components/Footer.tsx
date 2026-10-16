@@ -67,10 +67,10 @@ export const Footer: React.FC<FooterProps> = ({ onOpenHostPortal }) => {
               onClick={onOpenHostPortal}
               type="button"
               className="inline-flex items-center space-x-1.5 text-[11px] text-gold-dark hover:text-maroon transition-colors py-1 px-2 rounded-md hover:bg-gold-light/20"
-              title="Enter host PIN (0000) to view headcounts"
+              title="Host Dashboard (Password Protected)"
             >
               <Lock className="w-3 h-3 text-gold-dark" />
-              <span>Host Dashboard (PIN 0000)</span>
+              <span>Host Dashboard</span>
             </button>
           )}
 

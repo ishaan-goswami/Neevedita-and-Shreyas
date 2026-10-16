@@ -31,14 +31,6 @@ export const HostPortal: React.FC<HostPortalProps> = ({ onClose }) => {
   const [errorMsg, setErrorMsg] = useState('');
   const [rsvps, setRsvps] = useState<GuestRsvpRecord[]>([]);
 
-  // Check if session is already authenticated
-  useEffect(() => {
-    const sessionAuth = sessionStorage.getItem('host_authenticated');
-    if (sessionAuth === 'true') {
-      setIsAuthenticated(true);
-    }
-  }, []);
-
   // Load RSVPs from localStorage
   const loadRsvps = () => {
     try {
@@ -64,16 +56,16 @@ export const HostPortal: React.FC<HostPortalProps> = ({ onClose }) => {
     if (pinInput.trim() === '0000') {
       setIsAuthenticated(true);
       setErrorMsg('');
-      sessionStorage.setItem('host_authenticated', 'true');
     } else {
-      setErrorMsg('Incorrect PIN. Please enter 0000.');
+      setErrorMsg('Incorrect PIN. Please try again.');
     }
   };
 
-  const handleLogout = () => {
+  const handleClose = () => {
     setIsAuthenticated(false);
-    sessionStorage.removeItem('host_authenticated');
     setPinInput('');
+    setErrorMsg('');
+    onClose();
   };
 
   const handleClearData = () => {
@@ -87,7 +79,7 @@ export const HostPortal: React.FC<HostPortalProps> = ({ onClose }) => {
     if (rsvps.length === 0) return;
 
     const eventNames = weddingConfig.events.map((e) => e.name);
-    const headers = ['Guest Name', 'Total Guests', ...eventNames, 'Dietary Preference', 'Notes', 'Submitted At'];
+    const headers = ['Guest Name', 'Total Guests', ...eventNames, 'Notes', 'Submitted At'];
 
     const rows = rsvps.map((r) => {
       const eventStatuses = weddingConfig.events.map((e) => {
@@ -99,7 +91,6 @@ export const HostPortal: React.FC<HostPortalProps> = ({ onClose }) => {
         `"${r.guestName}"`,
         r.guestCount,
         ...eventStatuses.map((s) => `"${s}"`),
-        `"${r.dietaryPreference}"`,
         `"${(r.blessingMessage || '').replace(/"/g, '""')}"`,
         `"${r.submittedAt}"`,
       ];
@@ -182,13 +173,10 @@ export const HostPortal: React.FC<HostPortalProps> = ({ onClose }) => {
                   autoFocus
                   value={pinInput}
                   onChange={(e) => setPinInput(e.target.value)}
-                  placeholder="Enter PIN (e.g. 0000)"
+                  placeholder="Enter PIN"
                   className="w-full pl-10 pr-4 py-3 rounded-xl bg-ivory-100 border border-gold/40 text-charcoal text-center tracking-widest text-lg font-mono focus:outline-none focus:border-gold"
                 />
               </div>
-              <p className="text-[11px] text-gold-dark font-serif italic mt-1.5 text-center">
-                Default PIN is <strong className="font-mono">0000</strong>
-              </p>
             </div>
 
             {errorMsg && (
@@ -200,7 +188,7 @@ export const HostPortal: React.FC<HostPortalProps> = ({ onClose }) => {
             <div className="flex gap-3 pt-2">
               <button
                 type="button"
-                onClick={onClose}
+                onClick={handleClose}
                 className="flex-1 py-3 rounded-xl bg-ivory-100 hover:bg-ivory-200 border border-gold/30 text-xs uppercase tracking-wider text-charcoal font-medium transition-colors"
               >
                 Back to Site
@@ -227,7 +215,7 @@ export const HostPortal: React.FC<HostPortalProps> = ({ onClose }) => {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-ivory-50 p-6 rounded-2xl border border-gold/40 shadow-xs">
           <div className="flex items-center space-x-3">
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="p-2.5 rounded-full bg-ivory-100 hover:bg-ivory-200 border border-gold/30 text-charcoal transition-colors"
               title="Return to wedding invitation"
             >
@@ -264,11 +252,12 @@ export const HostPortal: React.FC<HostPortalProps> = ({ onClose }) => {
             )}
 
             <button
-              onClick={handleLogout}
-              className="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-lg bg-maroon hover:bg-maroon-dark text-ivory-50 text-xs font-medium tracking-wider uppercase transition-colors"
+              onClick={handleClose}
+              className="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-lg bg-ivory-100 hover:bg-ivory-200 border border-gold/40 text-charcoal text-xs font-medium tracking-wider uppercase transition-colors"
+              title="Return to wedding invitation"
             >
-              <Lock className="w-3.5 h-3.5 text-gold-light" />
-              <span>Lock Portal</span>
+              <ArrowLeft className="w-3.5 h-3.5 text-maroon" />
+              <span>Back to Site</span>
             </button>
           </div>
         </div>
@@ -405,7 +394,6 @@ export const HostPortal: React.FC<HostPortalProps> = ({ onClose }) => {
                     <th className="px-3 py-3.5 text-center">Vidhi</th>
                     <th className="px-3 py-3.5 text-center">Lagna</th>
                     <th className="px-3 py-3.5 text-center">Reception</th>
-                    <th className="px-4 py-3.5">Dietary</th>
                     <th className="px-5 py-3.5">Message / Note</th>
                     <th className="px-4 py-3.5">Submitted</th>
                   </tr>
@@ -454,10 +442,6 @@ export const HostPortal: React.FC<HostPortalProps> = ({ onClose }) => {
                           </td>
                         );
                       })}
-
-                      <td className="px-4 py-4 text-charcoal-light">
-                        {record.dietaryPreference || 'Vegetarian'}
-                      </td>
 
                       <td className="px-5 py-4 text-charcoal-light italic font-serif max-w-xs truncate" title={record.blessingMessage}>
                         {record.blessingMessage ? `"${record.blessingMessage}"` : '—'}
