@@ -265,7 +265,7 @@ export const GuestLookupSection: React.FC = () => {
             </p>
 
             <p className="text-xs sm:text-sm text-charcoal-light font-serif leading-relaxed mb-6">
-              Please double-check the spelling (try searching by "Ishaan Goswami" or "Goswami"). If you believe this is an error, please reach out directly to Shreyas or Neevedita.
+              Please double-check the spelling (try searching by "Ishaan Goswami"). If you believe this is an error, please reach out directly to Shreyas or Neevedita.
             </p>
 
             <button

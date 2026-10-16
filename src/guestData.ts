@@ -23,37 +23,18 @@ export const mockGuestsDatabase: GuestProfile[] = [
 ];
 
 /**
- * Smart Lookup for Guest Name
- * Matches "Ishaan Goswami", "Ishaan", or "Goswami" (case-insensitive)
+ * Lookup for Guest Name
+ * Strictly matches "Ishaan Goswami" (or "Ishaan") only for current testing
  */
 export function lookupGuest(query: string): GuestProfile | null {
-  const clean = query.trim().toLowerCase();
-  if (!clean || clean.length < 3) return null;
+  const clean = query.trim().toLowerCase().replace(/\s+/g, ' ');
+  if (!clean) return null;
 
-  const tokens = clean.split(/\s+/).filter(Boolean);
-  const ishaan = mockGuestsDatabase[0];
-  const ishaanLower = ishaan.name.toLowerCase();
-
-  // Match full name, first name "ishaan", or last name "goswami"
-  if (
-    clean === ishaanLower ||
-    clean === "ishaan" ||
-    clean === "goswami" ||
-    tokens.includes("ishaan") ||
-    tokens.includes("goswami")
-  ) {
-    return ishaan;
+  // Strictly match Ishaan Goswami only
+  if (clean === "ishaan goswami" || clean === "ishaan") {
+    return mockGuestsDatabase[0];
   }
 
-  // Generic lookup for future guests
-  return (
-    mockGuestsDatabase.find((g) => {
-      const gName = g.name.toLowerCase();
-      const gTokens = gName.split(/\s+/);
-      return (
-        clean === gName ||
-        tokens.some((t) => gTokens.includes(t) && t.length >= 3)
-      );
-    }) || null
-  );
+  // All other names (e.g. Jigna Goswami, Patel, etc.) return null
+  return null;
 }
