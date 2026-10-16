@@ -1,69 +1,85 @@
 import React from 'react';
 import { weddingConfig } from '../weddingConfig';
 import { MandalaDivider } from './MandalaDivider';
-import { MapPin, Hotel, Navigation, Sparkles } from 'lucide-react';
+import { Hotel, Navigation, Sparkles } from 'lucide-react';
 
 export const VenueSection: React.FC = () => {
-  const { venueOverview } = weddingConfig;
+  const { venuesList, venueOverview } = weddingConfig;
 
   return (
     <section id="overview" className="py-16 sm:py-24 px-4 bg-ivory-100/60 relative">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         {/* Section Header */}
         <div className="text-center max-w-2xl mx-auto mb-14">
           <p className="text-xs uppercase tracking-widest text-gold-dark font-semibold mb-2">
-            Venue & Guest Arrangements
+            Atlanta, Georgia Venues & Travel
           </p>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif text-charcoal font-normal">
-            Celebration Venue & Directions
+            Celebration Venues & Directions
           </h2>
           <MandalaDivider className="my-5" />
           <p className="text-sm sm:text-base text-charcoal-light font-serif italic">
-            "It is our highest honor and joy to welcome you and celebrate together."
+            "We look forward to welcoming you to our wedding celebrations in Greater Atlanta."
           </p>
         </div>
 
-        {/* Venue Information Card */}
-        <div className="bg-ivory-50 rounded-2xl border border-gold/40 shadow-sm overflow-hidden mb-8">
-          <div className="p-8 sm:p-10 text-center max-w-2xl mx-auto">
-            <span className="inline-flex p-3 rounded-full bg-sandstone/60 border border-gold/30 text-maroon mb-3">
-              <MapPin className="w-6 h-6" />
-            </span>
-
-            <h3 className="text-2xl sm:text-3xl font-serif text-charcoal font-normal mb-2">
-              {venueOverview.name}
-            </h3>
-
-            <p className="text-xs sm:text-sm text-charcoal-light font-sans max-w-md mx-auto mb-6 leading-relaxed">
-              {venueOverview.fullAddress}
-            </p>
-
-            <a
-              href={venueOverview.googleMapsDirectionsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center space-x-2 px-7 py-3 rounded-full bg-maroon hover:bg-maroon-dark text-ivory-50 text-xs sm:text-sm font-medium tracking-wider uppercase shadow transition-all duration-200 border border-gold/30"
+        {/* 3 Main Celebration Venues Grid */}
+        <div className="grid md:grid-cols-3 gap-6 mb-10">
+          {venuesList.map((v, i) => (
+            <div
+              key={i}
+              className="bg-ivory-50 rounded-2xl border border-gold/35 shadow-xs hover:border-gold/70 transition-all p-6 flex flex-col justify-between"
             >
-              <Navigation className="w-4 h-4 text-gold" />
-              <span>Open in Google Maps</span>
-            </a>
-          </div>
+              <div>
+                <span className="inline-block px-3 py-1 rounded-full bg-sandstone/60 border border-gold/30 text-maroon text-[10px] font-semibold uppercase tracking-wider mb-3">
+                  {v.role}
+                </span>
 
-          {/* Hospitality & Stay Details */}
-          <div className="border-t border-gold/30 p-6 sm:p-8 bg-ivory-100/50">
-            <div className="flex items-start space-x-3">
-              <div className="w-9 h-9 rounded-full bg-ivory-50 border border-gold/30 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <Hotel className="w-4 h-4 text-maroon" />
-              </div>
-              <div className="space-y-1">
-                <h4 className="font-serif text-base font-semibold text-charcoal flex items-center space-x-1.5">
-                  <span>Guest Hospitality & Parking</span>
-                  <Sparkles className="w-3.5 h-3.5 text-gold-dark" />
-                </h4>
-                <p className="text-xs sm:text-sm text-charcoal-light font-serif leading-relaxed">
-                  {venueOverview.accommodationsNote}
+                <h3 className="text-xl font-serif text-charcoal font-normal mb-2">
+                  {v.name}
+                </h3>
+
+                <p className="text-xs text-charcoal-light font-sans mb-3 leading-relaxed">
+                  {v.address}
                 </p>
+
+                {v.note && (
+                  <p className="text-xs text-gold-dark font-serif italic mb-5">
+                    {v.note}
+                  </p>
+                )}
               </div>
+
+              <a
+                href={v.googleMapsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full inline-flex items-center justify-center space-x-1.5 px-4 py-2.5 rounded-xl bg-ivory-100 hover:bg-gold-light/30 border border-gold/40 text-xs text-charcoal font-medium transition-colors"
+              >
+                <Navigation className="w-3.5 h-3.5 text-maroon" />
+                <span>Google Maps</span>
+              </a>
+            </div>
+          ))}
+        </div>
+
+        {/* Accommodations & Guest Info Card */}
+        <div className="bg-ivory-50 rounded-2xl border border-gold/40 p-6 sm:p-8 shadow-xs">
+          <div className="flex items-start space-x-4">
+            <div className="w-10 h-10 rounded-full bg-sandstone/60 border border-gold/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <Hotel className="w-5 h-5 text-maroon" />
+            </div>
+            <div className="space-y-1">
+              <h4 className="font-serif text-lg font-semibold text-charcoal flex items-center space-x-1.5">
+                <span>Guest Accommodations & Stay</span>
+                <Sparkles className="w-3.5 h-3.5 text-gold-dark" />
+              </h4>
+              <p className="text-xs sm:text-sm text-charcoal font-medium">
+                {venueOverview.name} • {venueOverview.fullAddress}
+              </p>
+              <p className="text-xs sm:text-sm text-charcoal-light font-serif leading-relaxed pt-1">
+                {venueOverview.accommodationsNote}
+              </p>
             </div>
           </div>
         </div>
