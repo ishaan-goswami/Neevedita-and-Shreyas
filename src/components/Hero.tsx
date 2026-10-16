@@ -59,15 +59,15 @@ export const Hero: React.FC = () => {
           Together with our families, we invite you to celebrate the wedding of
         </p>
 
-        {/* Couple Names: Shreyas & Neevedita */}
+        {/* Couple Names: Neevedita & Shreyas */}
         <div className="py-2 mb-4">
           <h1 className="text-4xl sm:text-6xl md:text-7xl font-serif text-charcoal tracking-normal font-normal">
             <span className="hover:text-maroon transition-colors">
-              {weddingConfig.couple.groom.firstName}
+              {weddingConfig.couple.bride.firstName}
             </span>
             <span className="mx-3 text-gold font-light text-3xl sm:text-5xl">&</span>
             <span className="hover:text-maroon transition-colors">
-              {weddingConfig.couple.bride.firstName}
+              {weddingConfig.couple.groom.firstName}
             </span>
           </h1>
 

@@ -169,7 +169,9 @@ export const GuestLookupSection: React.FC = () => {
     };
 
     try {
-      const existing: GuestRsvpRecord[] = JSON.parse(localStorage.getItem(RSVP_STORAGE_KEY) || '[]');
+      const existing: GuestRsvpRecord[] = JSON.parse(
+        localStorage.getItem(RSVP_STORAGE_KEY) || localStorage.getItem('shreyas_neevedita_wedding_rsvps') || '[]'
+      );
       // Replace existing submission for this guest if updated, or prepend
       const filtered = existing.filter(
         (r) => r.guestName.toLowerCase() !== newRecord.guestName.toLowerCase()
@@ -205,7 +207,7 @@ export const GuestLookupSection: React.FC = () => {
       .join(', ');
 
     const text = encodeURIComponent(
-      `*Wedding RSVP Confirmation for Shreyas & Neevedita*\n` +
+      `*Wedding RSVP Confirmation for Neevedita & Shreyas*\n` +
       `📍 Location: Atlanta, Georgia (May 28-30)\n` +
       `👤 Guest Name: ${name}\n` +
       `👥 Total Attending: ${guestCount}\n` +
@@ -292,7 +294,7 @@ export const GuestLookupSection: React.FC = () => {
             </p>
 
             <p className="text-xs sm:text-sm text-charcoal-light font-serif leading-relaxed mb-6">
-              Please double-check the spelling (try searching by "Ishaan Goswami"). If you believe this is an error, please reach out directly to Shreyas or Neevedita.
+              Please double-check the spelling (try searching by "Ishaan Goswami"). If you believe this is an error, please reach out directly to Neevedita or Shreyas.
             </p>
 
             <button
@@ -323,7 +325,7 @@ export const GuestLookupSection: React.FC = () => {
                   </h3>
 
                   <p className="text-xs sm:text-sm text-gold-dark font-serif italic mt-1">
-                    {activeGuest.note || "Shreyas & Neevedita are overjoyed to celebrate our wedding ceremonies with you in Atlanta."}
+                    {activeGuest.note || "Neevedita & Shreyas are overjoyed to celebrate our wedding ceremonies with you in Atlanta."}
                   </p>
                 </div>
 
@@ -605,7 +607,7 @@ export const GuestLookupSection: React.FC = () => {
                   {/* Blessings message */}
                   <div>
                     <label className="block text-xs uppercase tracking-wider font-semibold text-charcoal mb-2">
-                      Blessings & Wishes for Shreyas & Neevedita
+                      Blessings & Wishes for Neevedita & Shreyas
                     </label>
                     <textarea
                       rows={3}

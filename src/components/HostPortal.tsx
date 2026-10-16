@@ -34,7 +34,7 @@ export const HostPortal: React.FC<HostPortalProps> = ({ onClose }) => {
   // Load RSVPs from localStorage
   const loadRsvps = () => {
     try {
-      const data = localStorage.getItem(RSVP_STORAGE_KEY);
+      const data = localStorage.getItem(RSVP_STORAGE_KEY) || localStorage.getItem('shreyas_neevedita_wedding_rsvps');
       if (data) {
         setRsvps(JSON.parse(data));
       } else {
@@ -223,7 +223,7 @@ export const HostPortal: React.FC<HostPortalProps> = ({ onClose }) => {
             </button>
             <div>
               <span className="text-[11px] uppercase tracking-widest text-gold-dark font-semibold block">
-                Shreyas & Neevedita • Host Access
+                Neevedita & Shreyas • Host Access
               </span>
               <h2 className="text-2xl sm:text-3xl font-serif text-charcoal font-normal">
                 Ceremony Headcount & RSVP Dashboard

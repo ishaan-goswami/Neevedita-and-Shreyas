@@ -38,7 +38,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenHostPortal }) => {
 
         {/* Names & Families gratitude */}
         <h3 className="text-2xl sm:text-3xl font-serif text-charcoal font-normal mb-2">
-          {weddingConfig.couple.groom.firstName} & {weddingConfig.couple.bride.firstName}
+          {weddingConfig.couple.bride.firstName} & {weddingConfig.couple.groom.firstName}
         </h3>
 
         <p className="text-xs uppercase tracking-widest text-gold-dark font-semibold mb-6">
@@ -77,7 +77,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenHostPortal }) => {
           <p className="flex items-center space-x-1">
             <span>Crafted with</span>
             <Heart className="w-3 h-3 text-vermilion fill-vermilion inline" />
-            <span>for Shreyas & Neevedita's Wedding</span>
+            <span>for Neevedita & Shreyas's Wedding</span>
           </p>
         </div>
       </div>

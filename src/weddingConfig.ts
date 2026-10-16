@@ -80,7 +80,7 @@ export const weddingConfig: WeddingConfig = {
       parents: "Beloved daughter of our esteemed parents & elders",
       bio: "Looking forward to welcoming you to our wedding celebrations in Atlanta."
     },
-    hashtag: "#ShreyasAndNeevedita"
+    hashtag: "#NeeveditaAndShreyas"
   },
 
   invitationNote: "Together with our families, we joyfully welcome you to our wedding celebrations in Atlanta, Georgia. Please enter your name below to view your personal ceremony schedule and RSVP.",
@@ -141,7 +141,7 @@ export const weddingConfig: WeddingConfig = {
       iconName: "flower",
       googleMapsUrl: "https://maps.google.com/?q=8205+St.+Marlo+Fairway+Drive,+Duluth,+GA+30097",
       calendarEvent: {
-        title: "Shreyas & Neevedita — Mehendi Celebration",
+        title: "Neevedita & Shreyas — Mehendi Celebration",
         description: "Join us for an afternoon of mehendi, music, and lunch.",
         location: "8205 St. Marlo Fairway Drive, Duluth, GA 30097",
         startDate: "20270528T130000Z",
@@ -166,7 +166,7 @@ export const weddingConfig: WeddingConfig = {
       iconName: "music",
       googleMapsUrl: "https://maps.google.com/?q=Shiv+Mandir+of+Atlanta,+890+Peachtree+Industrial+Blvd+NE,+Sugar+Hill,+GA+30518",
       calendarEvent: {
-        title: "Shreyas & Neevedita — Garba Night",
+        title: "Neevedita & Shreyas — Garba Night",
         description: "A high-energy night of Garba, Dandiya, music, and dinner.",
         location: "Shiv Mandir of Atlanta, 890 Peachtree Industrial Blvd NE, Sugar Hill, GA 30518",
         startDate: "20270528T183000Z",
@@ -191,7 +191,7 @@ export const weddingConfig: WeddingConfig = {
       iconName: "sun",
       googleMapsUrl: "https://maps.google.com/?q=8205+St.+Marlo+Fairway+Drive,+Duluth,+GA+30097",
       calendarEvent: {
-        title: "Shreyas & Neevedita — Vidhi (Mandap Mahurat & Pithi)",
+        title: "Neevedita & Shreyas — Vidhi (Mandap Mahurat & Pithi)",
         description: "Sacred morning Vedic rituals and Pithi ceremony followed by traditional lunch.",
         location: "8205 St. Marlo Fairway Drive, Duluth, GA 30097",
         startDate: "20270529T093000Z",
@@ -216,7 +216,7 @@ export const weddingConfig: WeddingConfig = {
       iconName: "flame",
       googleMapsUrl: "https://maps.google.com/?q=Atlanta+Evergreen+Lakeside+Resort,+4021+Lakeview+Dr,+Stone+Mountain,+GA+30083",
       calendarEvent: {
-        title: "Shreyas & Neevedita — Shubh Lagna (Wedding Ceremony)",
+        title: "Neevedita & Shreyas — Shubh Lagna (Wedding Ceremony)",
         description: "The sacred Vedic wedding ceremony, Baraat, and vows around the holy fire.",
         location: "Atlanta Evergreen Lakeside Resort, 4021 Lakeview Dr, Stone Mountain, GA 30083",
         startDate: "20270530T100000Z",
@@ -241,7 +241,7 @@ export const weddingConfig: WeddingConfig = {
       iconName: "sparkles",
       googleMapsUrl: "https://maps.google.com/?q=Atlanta+Evergreen+Lakeside+Resort,+4021+Lakeview+Dr,+Stone+Mountain,+GA+30083",
       calendarEvent: {
-        title: "Shreyas & Neevedita — Wedding Reception",
+        title: "Neevedita & Shreyas — Wedding Reception",
         description: "Celebrate the newlyweds with royal dinner, toasts, and music.",
         location: "Atlanta Evergreen Lakeside Resort, 4021 Lakeview Dr, Stone Mountain, GA 30083",
         startDate: "20270530T183000Z",

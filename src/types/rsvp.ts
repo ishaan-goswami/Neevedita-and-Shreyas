@@ -8,4 +8,4 @@ export interface GuestRsvpRecord {
   submittedAt: string;
 }
 
-export const RSVP_STORAGE_KEY = 'shreyas_neevedita_wedding_rsvps';
+export const RSVP_STORAGE_KEY = 'neevedita_shreyas_wedding_rsvps';

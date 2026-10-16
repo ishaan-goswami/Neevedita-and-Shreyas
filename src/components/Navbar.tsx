@@ -27,12 +27,12 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenHostPortal }) => {
           >
             <div className="w-8 h-8 rounded-full border border-gold/60 flex items-center justify-center bg-ivory-200 group-hover:border-gold transition-colors">
               <span className="font-serif text-sm font-bold text-maroon">
-                S<span className="text-gold">&</span>N
+                N<span className="text-gold">&</span>S
               </span>
             </div>
             <div>
               <span className="font-serif text-base sm:text-lg tracking-wider text-charcoal group-hover:text-maroon transition-colors">
-                {weddingConfig.couple.groom.firstName} & {weddingConfig.couple.bride.firstName}
+                {weddingConfig.couple.bride.firstName} & {weddingConfig.couple.groom.firstName}
               </span>
             </div>
           </a>

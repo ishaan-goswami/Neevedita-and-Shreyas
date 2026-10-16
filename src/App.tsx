@@ -5,7 +5,6 @@ import { GuestLookupSection } from './components/GuestLookupSection';
 import { VenueSection } from './components/VenueSection';
 import { Footer } from './components/Footer';
 import { HostPortal } from './components/HostPortal';
-import { MusicPlayer } from './components/MusicPlayer';
 import { FloatingPetals } from './components/FloatingPetals';
 import { Flower } from 'lucide-react';
 
@@ -60,9 +59,6 @@ export function App() {
       {isHostPortalOpen && (
         <HostPortal onClose={handleCloseHostPortal} />
       )}
-
-      {/* Ambient Sitar / Shehnai Music Player */}
-      <MusicPlayer />
 
       {/* Floating Petals Toggle */}
       <button
