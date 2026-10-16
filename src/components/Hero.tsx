@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, ChevronDown, Search } from 'lucide-react';
+import { Calendar, ChevronDown, Search, MapPin } from 'lucide-react';
 import { weddingConfig } from '../weddingConfig';
 import { GaneshaEmblem } from './GaneshaEmblem';
 import { DiyaLamp } from './DiyaLamp';
@@ -85,10 +85,17 @@ export const Hero: React.FC = () => {
           </p>
         </div>
 
-        {/* Date Pill */}
-        <div className="inline-flex items-center space-x-2 px-5 py-2 rounded-full bg-ivory-200/90 border border-gold/40 shadow-xs text-charcoal text-xs sm:text-sm font-medium mb-7">
-          <Calendar className="w-4 h-4 text-maroon" />
-          <span>{weddingConfig.displayDateText}</span>
+        {/* Date & Location Pill */}
+        <div className="inline-flex flex-wrap items-center justify-center gap-2 px-5 py-2 rounded-full bg-ivory-200/90 border border-gold/40 shadow-xs text-charcoal text-xs sm:text-sm font-medium mb-7">
+          <div className="flex items-center space-x-1.5">
+            <Calendar className="w-4 h-4 text-maroon" />
+            <span>{weddingConfig.displayDateText}</span>
+          </div>
+          <span className="text-gold">•</span>
+          <div className="flex items-center space-x-1 text-charcoal-light">
+            <MapPin className="w-3.5 h-3.5 text-maroon" />
+            <span>{weddingConfig.locationCity}</span>
+          </div>
         </div>
 
         {/* Countdown Timer */}

@@ -13,6 +13,7 @@ import {
   Flame,
   Music,
   Sparkles,
+  Flower2,
   CheckCircle2,
   Send,
   MessageSquare,
@@ -27,9 +28,9 @@ export const GuestLookupSection: React.FC = () => {
   const [searchedName, setSearchedName] = useState('');
   const [isGenericFallback, setIsGenericFallback] = useState(false);
 
-  // RSVP Form State for the active guest
+  // RSVP Form State
   const [rsvpAttendingEvents, setRsvpAttendingEvents] = useState<string[]>([]);
-  const [guestCount, setGuestCount] = useState(1);
+  const [guestCount, setGuestCount] = useState(2);
   const [dietaryPreference, setDietaryPreference] = useState('Vegetarian');
   const [blessingMessage, setBlessingMessage] = useState('');
   const [isRsvpSubmitted, setIsRsvpSubmitted] = useState(false);
@@ -53,7 +54,7 @@ export const GuestLookupSection: React.FC = () => {
         name: query,
         allowedPlusOnes: 1,
         invitedEventIds: weddingConfig.events.map((e) => e.id),
-        note: "We are delighted to celebrate with you!"
+        note: "We are delighted to celebrate with you in Atlanta, Georgia!"
       };
       setActiveGuest(fallbackGuest);
       setIsGenericFallback(true);
@@ -87,12 +88,14 @@ export const GuestLookupSection: React.FC = () => {
 
   const getEventIcon = (iconName: WeddingEvent['iconName']) => {
     switch (iconName) {
+      case 'flower':
+        return <Flower2 className="w-5 h-5 text-emerald-600" />;
+      case 'music':
+        return <Music className="w-5 h-5 text-amber-600" />;
       case 'sun':
-        return <Sun className="w-5 h-5 text-amber-500" />;
+        return <Sun className="w-5 h-5 text-yellow-500" />;
       case 'flame':
         return <Flame className="w-5 h-5 text-orange-600" />;
-      case 'music':
-        return <Music className="w-5 h-5 text-emerald-600" />;
       case 'sparkles':
         return <Sparkles className="w-5 h-5 text-purple-600" />;
       default:
@@ -113,7 +116,6 @@ export const GuestLookupSection: React.FC = () => {
   const handleRsvpSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Save to localStorage for couple's review
     try {
       const existing = JSON.parse(localStorage.getItem('wedding_rsvps') || '[]');
       const newEntry = {
@@ -152,6 +154,7 @@ export const GuestLookupSection: React.FC = () => {
 
     const text = encodeURIComponent(
       `*Wedding RSVP Confirmation for Shreyas & Neevedita*\n` +
+      `📍 Location: Atlanta, Georgia (May 28-30)\n` +
       `👤 Guest Name: ${name}\n` +
       `👥 Total Attending: ${guestCount}\n` +
       `🍛 Dietary Preference: ${dietaryPreference}\n` +
@@ -167,14 +170,14 @@ export const GuestLookupSection: React.FC = () => {
         {/* Section Header */}
         <div className="text-center max-w-2xl mx-auto mb-10">
           <p className="text-xs uppercase tracking-widest text-gold-dark font-semibold mb-2">
-            Guest Invitation Portal
+            Atlanta, Georgia • May 28 – 30
           </p>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif text-charcoal font-normal">
             Find Your Invitation & Schedule
           </h2>
           <MandalaDivider className="my-5" />
           <p className="text-sm sm:text-base text-charcoal-light font-serif leading-relaxed">
-            Please enter your full name below to access your personalized wedding itinerary and RSVP.
+            Please enter your name below to view your invitations to Garba, Vidhi, Lagna, Reception, and Mehendi.
           </p>
         </div>
 
@@ -188,7 +191,7 @@ export const GuestLookupSection: React.FC = () => {
             className="space-y-4"
           >
             <label className="block text-xs uppercase tracking-wider font-semibold text-charcoal">
-              Enter Guest Name
+              Enter Guest or Family Name
             </label>
             <div className="relative flex flex-col sm:flex-row gap-3">
               <div className="relative flex-1">
@@ -197,7 +200,7 @@ export const GuestLookupSection: React.FC = () => {
                   type="text"
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
-                  placeholder="e.g. Amit Kumar, Priya Sharma..."
+                  placeholder="e.g. Goswami"
                   className="w-full pl-12 pr-4 py-3 rounded-xl bg-ivory-50 border border-gold/40 focus:border-gold focus:outline-none text-charcoal text-sm sm:text-base transition-colors shadow-inner"
                 />
               </div>
@@ -210,13 +213,13 @@ export const GuestLookupSection: React.FC = () => {
               </button>
             </div>
 
-            {/* Quick Demo Sample Name Chips */}
+            {/* Quick Demo Test Chips */}
             <div className="pt-3 border-t border-dashed border-gold/25">
               <span className="text-[11px] text-charcoal-light uppercase tracking-wider font-semibold block mb-2">
-                Sample Test Names (Try Clicking One):
+                Sample Test Search (Click to test):
               </span>
               <div className="flex flex-wrap gap-2">
-                {mockGuestsDatabase.slice(0, 4).map((sample) => (
+                {mockGuestsDatabase.map((sample) => (
                   <button
                     key={sample.id}
                     type="button"
@@ -224,11 +227,15 @@ export const GuestLookupSection: React.FC = () => {
                       setSearchInput(sample.name);
                       handleSearch(sample.name);
                     }}
-                    className="text-xs px-3 py-1.5 rounded-full bg-ivory-50 hover:bg-gold-light/40 border border-gold/30 text-charcoal transition-colors font-medium flex items-center space-x-1"
+                    className={`text-xs px-3.5 py-1.5 rounded-full border transition-all font-medium flex items-center space-x-1.5 ${
+                      sample.name === 'Goswami'
+                        ? 'bg-maroon text-ivory-50 border-gold shadow-sm hover:bg-maroon-dark'
+                        : 'bg-ivory-50 hover:bg-gold-light/40 border-gold/30 text-charcoal'
+                    }`}
                   >
                     <span>{sample.name}</span>
-                    <span className="text-[10px] text-gold-dark">
-                      ({sample.invitedEventIds.length} events)
+                    <span className={sample.name === 'Goswami' ? 'text-gold-light text-[11px]' : 'text-gold-dark text-[10px]'}>
+                      ({sample.invitedEventIds.length === 5 ? 'All 5 Events' : `${sample.invitedEventIds.length} Events`})
                     </span>
                   </button>
                 ))}
@@ -246,7 +253,7 @@ export const GuestLookupSection: React.FC = () => {
                 <div>
                   <span className="inline-flex items-center space-x-1 px-3 py-1 rounded-full bg-sandstone/60 border border-gold/30 text-maroon text-xs font-semibold uppercase tracking-wider mb-2">
                     <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>Invitation Found</span>
+                    <span>Invitation Confirmed</span>
                   </span>
 
                   <h3 className="text-2xl sm:text-3xl md:text-4xl font-serif text-charcoal font-normal">
@@ -254,7 +261,7 @@ export const GuestLookupSection: React.FC = () => {
                   </h3>
 
                   <p className="text-xs sm:text-sm text-gold-dark font-serif italic mt-1">
-                    {activeGuest.note || "Shreyas & Neevedita are overjoyed to celebrate their special days with you."}
+                    {activeGuest.note || "Shreyas & Neevedita are overjoyed to celebrate our wedding ceremonies with you in Atlanta."}
                   </p>
                 </div>
 
@@ -281,7 +288,7 @@ export const GuestLookupSection: React.FC = () => {
 
               {isGenericFallback && (
                 <div className="mt-4 p-3 rounded-lg bg-amber-50/80 border border-amber-200 text-amber-900 text-xs font-sans">
-                  <strong>Note:</strong> Showing full schedule preview for "{activeGuest.name}". When you connect your live database later, each guest will automatically see only their assigned events.
+                  <strong>Note:</strong> Showing full 5-event schedule preview for "{activeGuest.name}". When you connect your live database later, each guest will automatically see only their designated events.
                 </div>
               )}
             </div>
@@ -291,10 +298,10 @@ export const GuestLookupSection: React.FC = () => {
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h3 className="text-xl sm:text-2xl font-serif text-charcoal">
-                    Your Invited Celebrations & Timings
+                    Your Ceremony Schedule & Invitations
                   </h3>
                   <p className="text-xs sm:text-sm text-charcoal-light font-serif">
-                    These are the celebrations arranged for you and your party.
+                    Ceremonies arranged in Atlanta, Georgia across May 28 – 30.
                   </p>
                 </div>
               </div>
@@ -305,7 +312,7 @@ export const GuestLookupSection: React.FC = () => {
                     key={ev.id}
                     className="relative flex flex-col justify-between bg-ivory-50 rounded-2xl border border-gold/35 shadow-sm hover:border-gold/70 transition-all p-6 sm:p-7"
                   >
-                    {/* Top strip */}
+                    {/* Top color strip */}
                     <div
                       className="absolute top-0 left-0 right-0 h-1.5 rounded-t-2xl"
                       style={{ backgroundColor: ev.dressCodeColorHex }}
@@ -335,7 +342,7 @@ export const GuestLookupSection: React.FC = () => {
                         )}
                       </div>
 
-                      <h4 className="text-xl sm:text-2xl font-serif text-charcoal mb-2">
+                      <h4 className="text-2xl sm:text-3xl font-serif text-charcoal mb-2">
                         {ev.name}
                       </h4>
 
@@ -343,7 +350,7 @@ export const GuestLookupSection: React.FC = () => {
                         {ev.description}
                       </p>
 
-                      {/* Timings and Venue */}
+                      {/* Timings and Venue in Atlanta */}
                       <div className="space-y-2 text-xs text-charcoal py-3 border-t border-b border-gold/20 mb-4">
                         <div className="flex items-center space-x-2">
                           <Calendar className="w-3.5 h-3.5 text-maroon" />
@@ -357,7 +364,7 @@ export const GuestLookupSection: React.FC = () => {
                           <MapPin className="w-3.5 h-3.5 text-maroon mt-0.5 flex-shrink-0" />
                           <div>
                             <span className="font-medium">{ev.hallName}</span>
-                            <span className="text-charcoal-light block">{ev.venueName} • {ev.address}</span>
+                            <span className="text-charcoal-light block">{ev.venueName} • {ev.cityState}</span>
                           </div>
                         </div>
                       </div>
@@ -367,7 +374,7 @@ export const GuestLookupSection: React.FC = () => {
                         <div className="flex items-center space-x-1.5 mb-0.5">
                           <Palette className="w-3.5 h-3.5 text-gold-dark" />
                           <span className="text-[10px] uppercase tracking-wider font-semibold text-gold-dark">
-                            Dress Code
+                            Suggested Attire
                           </span>
                         </div>
                         <p className="font-medium text-charcoal">{ev.dressCode}</p>
@@ -409,10 +416,10 @@ export const GuestLookupSection: React.FC = () => {
                     <CheckCircle2 className="w-7 h-7" />
                   </div>
                   <h3 className="text-2xl sm:text-3xl font-serif text-charcoal">
-                    RSVP Confirmed for {activeGuest.name}!
+                    RSVP Received for {activeGuest.name}!
                   </h3>
                   <p className="text-sm font-serif text-charcoal-light max-w-md mx-auto">
-                    Thank you for responding. Shreyas, Neevedita, and our families look forward to welcoming you with warmth and joy!
+                    Thank you for responding. Shreyas, Neevedita, and our families cannot wait to celebrate with you in Atlanta!
                   </p>
 
                   <div className="pt-2 max-w-sm mx-auto space-y-3">
@@ -479,7 +486,7 @@ export const GuestLookupSection: React.FC = () => {
                               className="w-4 h-4 rounded text-maroon accent-maroon focus:ring-gold"
                             />
                             <div className="flex-1 text-xs sm:text-sm">
-                              <span className="font-medium text-charcoal">{ev.name}</span>
+                              <span className="font-semibold text-charcoal">{ev.name}</span>
                               <span className="text-gold-dark text-xs block sm:inline sm:ml-2">
                                 ({ev.date.split(',')[0]} • {ev.time})
                               </span>
@@ -501,7 +508,7 @@ export const GuestLookupSection: React.FC = () => {
                         onChange={(e) => setGuestCount(Number(e.target.value))}
                         className="w-full px-4 py-2.5 rounded-xl bg-ivory-100 border border-gold/30 text-charcoal text-sm focus:border-gold focus:outline-none"
                       >
-                        {Array.from({ length: 1 + (activeGuest.allowedPlusOnes || 2) }).map((_, i) => (
+                        {Array.from({ length: 1 + (activeGuest.allowedPlusOnes || 3) }).map((_, i) => (
                           <option key={i + 1} value={i + 1}>
                             {i + 1} {i === 0 ? 'Person' : 'People'}
                           </option>
