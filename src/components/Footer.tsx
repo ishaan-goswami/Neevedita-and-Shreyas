@@ -10,7 +10,7 @@ export const Footer: React.FC = () => {
   };
 
   return (
-    <footer className="relative bg-gradient-to-b from-ivory-50 via-sandstone/40 to-ivory-200/90 pt-16 pb-12 overflow-hidden border-t border-gold/30">
+    <footer className="relative bg-gradient-to-b from-ivory-50 via-sandstone/30 to-ivory-200/90 pt-14 pb-12 overflow-hidden border-t border-gold/30">
       {/* Temple Silhouette skyline in the footer */}
       <div className="w-full mb-8">
         <TempleSilhouette className="h-20 sm:h-28" opacity={0.25} />
@@ -19,16 +19,16 @@ export const Footer: React.FC = () => {
       <div className="relative z-10 max-w-4xl mx-auto px-4 text-center">
         {/* Emblem */}
         <div className="mb-4 flex justify-center">
-          <GaneshaEmblem size={44} />
+          <GaneshaEmblem size={42} />
         </div>
 
-        {/* Shanti Mantra */}
+        {/* English Blessing & Shanti */}
         <div className="space-y-1 mb-6">
-          <p className="text-maroon font-serif text-base sm:text-lg tracking-widest font-semibold shloka-text">
-            || सर्वे भवन्तु सुखिनः सर्वे सन्तु निरामयाः ||
+          <p className="text-maroon font-serif text-sm sm:text-base tracking-widest font-semibold uppercase">
+            Om Shanti Shanti Shanti
           </p>
-          <p className="text-xs text-gold-dark font-serif italic">
-            "May all beings everywhere be happy, healthy, and blessed with peace."
+          <p className="text-xs text-gold-dark font-serif italic max-w-md mx-auto">
+            "May all beings everywhere be blessed with health, peace, and joyous beginnings."
           </p>
         </div>
 
@@ -37,12 +37,8 @@ export const Footer: React.FC = () => {
           {weddingConfig.couple.groom.firstName} & {weddingConfig.couple.bride.firstName}
         </h3>
 
-        <p className="text-xs uppercase tracking-widest text-gold-dark font-semibold mb-4">
-          With Love & Gratitude From Both Families
-        </p>
-
-        <p className="text-xs font-serif italic text-charcoal-light max-w-md mx-auto mb-8">
-          {weddingConfig.couple.groom.parents} & {weddingConfig.couple.bride.parents}
+        <p className="text-xs uppercase tracking-widest text-gold-dark font-semibold mb-6">
+          With Love & Blessings From Both Our Families
         </p>
 
         {/* Scroll to Top */}
@@ -56,7 +52,7 @@ export const Footer: React.FC = () => {
           <ArrowUp className="w-3.5 h-3.5" />
         </button>
 
-        {/* Copyright / Attribution */}
+        {/* Date / Attribution */}
         <div className="border-t border-gold/20 pt-6 text-[11px] text-charcoal-light font-sans flex flex-col sm:flex-row items-center justify-between gap-2">
           <p>
             {weddingConfig.displayDateText}
@@ -64,7 +60,7 @@ export const Footer: React.FC = () => {
           <p className="flex items-center space-x-1">
             <span>Crafted with</span>
             <Heart className="w-3 h-3 text-vermilion fill-vermilion inline" />
-            <span>for our wedding celebration</span>
+            <span>for Shreyas & Neevedita's Wedding</span>
           </p>
         </div>
       </div>

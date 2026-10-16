@@ -1,28 +1,35 @@
-# 🪔 Hindu Indian Wedding Invite Website
+# 🪔 Shreyas & Neevedita — Wedding Guest Invitation & Event Portal
 
-A minimalist, elegant Hindu Indian wedding invitation website built with **React, TypeScript, Tailwind CSS, and Vite**. Designed with authentic Vedic cultural elements, sacred temple silhouettes, delicate gold & ivory aesthetics, and mobile-first responsiveness.
+A minimalist, elegant Hindu Indian wedding guest invitation portal for **Shreyas & Neevedita**, built with **React, TypeScript, Tailwind CSS, and Vite**. Designed with a minimalist temple silhouette backdrop, warm gold and ivory tones, and pure English typography.
 
 ---
 
-## ✨ Features
+## 🎯 How It Works
 
-- **Minimalist Hindu Temple Silhouette**: Layered Nagara/Dravidian Shikhara spires and mandapas in warm gold.
-- **Auspicious Invocations**: Traditional `|| श्री गणेशाय नमः ||` (Om Shri Ganeshaya Namaha) invocation, Lord Ganesha emblem, and Shanti mantra.
-- **Live Muhurat Countdown**: Real-time days, hours, minutes, and seconds countdown to the wedding ceremony.
-- **Ceremonies & Itinerary**:
-  - Detailed schedule for Haldi, Mehendi & Sangeet, Baraat & Sacred Pheras, and Reception.
-  - Auspicious Muhurat notes, venue details, and dress code suggestions with color palettes.
-  - **"Add to Google Calendar"** one-click links.
-  - **"Get Directions"** Google Maps buttons.
-- **The Seven Sacred Steps (Saptapadi)**: Vedic vows around the holy Agni with Sanskrit verses and English meanings.
-- **Interactive RSVP System**:
-  - RSVP form with ceremony checkboxes, guest counts, and dietary options (Vegetarian, Jain, Vegan, etc.).
-  - Celebratory confetti burst upon submission.
-  - Direct **"Send via WhatsApp"** button for immediate confirmation to the couple.
-  - Local submission storage with CSV export capability.
-- **Ambient Sitar & Shehnai Music**: Soft traditional instrumental player in the floating corner (synthesized via Web Audio API, works offline with zero external audio assets).
-- **Floating Marigold & Rose Petals**: Subtle, lightweight petal drift animation (with on/off toggle).
-- **GitHub Pages Ready**: Pre-configured with relative base paths and GitHub Actions workflow for one-click deployment.
+Instead of a generic public wedding website, this is an **invitation & event access portal**:
+
+1. **Guest Name Lookup**:
+   Guests enter their full name into the search box on the landing page.
+2. **Personalized Event Schedule**:
+   The portal looks up the guest in [`src/guestData.ts`](./src/guestData.ts) and displays **only the specific ceremonies they are invited to** (e.g. some guests are invited to all 4 ceremonies, while others to Sangeet & Reception or Wedding & Reception).
+3. **Personalized RSVP**:
+   Guests confirm their attendance directly for their invited ceremonies, select party size & dietary preference (Vegetarian, Jain Vegetarian, Vegan, etc.), and can 1-click send their RSVP confirmation directly to the couple via WhatsApp!
+
+---
+
+## 🧪 Demo Test Names (Mock Database)
+
+A sample dataset is pre-configured in [`src/guestData.ts`](./src/guestData.ts) so you and Neevedita can test immediately:
+
+| Sample Guest Name | Invited Events |
+| :--- | :--- |
+| **Amit Kumar** | All 4 Events (Haldi, Sangeet, Wedding, Reception) |
+| **Priya Sharma** | 3 Events (Sangeet, Wedding, Reception) |
+| **Rohan Verma** | 2 Events (Wedding & Reception) |
+| **Uncle Rajesh & Family** | All 4 Events (Haldi, Sangeet, Wedding, Reception) |
+| **Ananya Patel** | 2 Events (Wedding & Reception) |
+
+*(Entering any other name will display a welcoming schedule preview with instructions on connecting a database).*
 
 ---
 
@@ -33,53 +40,47 @@ A minimalist, elegant Hindu Indian wedding invitation website built with **React
 npm install
 ```
 
-### 2. Start Local Development Server
+### 2. Launch Development Server
 ```bash
 npm run dev
 ```
-Open your browser and navigate to `http://localhost:5173`.
+Open your browser at **`http://localhost:5173`**.
 
-### 3. Build for Production
+### 3. Production Build
 ```bash
 npm run build
 ```
-The compiled, optimized static files will be generated in the `dist/` directory.
 
 ---
 
-## 🎨 How to Customize Your Wedding Details
+## 🔌 Connecting Your Real Database Later
 
-All wedding details are cleanly organized in a single configuration file:
-👉 **[`src/weddingConfig.ts`](./src/weddingConfig.ts)**
+When you are ready with your real database (e.g. Google Sheets, Supabase, Airtable, Firebase, or PostgreSQL), you only need to connect it in:
+👉 **[`src/guestData.ts`](./src/guestData.ts)**
 
-You can easily update:
-1. **Couple & Families**: Names of bride & groom, parents (`Smt. & Shri...`), grandparents, hometowns, and hashtags.
-2. **Date & Countdown**: Update `weddingDate` (e.g. `'2027-02-18T10:30:00'`).
-3. **Events & Schedule**: Dates, times, Muhurats, dress codes, and ceremony descriptions.
-4. **Venue & Accommodations**: Venue name, address, Google Maps links, and airport transit notes.
-5. **RSVP WhatsApp Number**: Set `rsvp.contactPhone` to your phone number with country code (e.g. `"919876543210"`).
+The lookup function `lookupGuest(query)` can be updated to fetch from your backend or API endpoint:
 
----
-
-## 🌐 How to Host on GitHub Pages (Free)
-
-This project is pre-configured for GitHub Pages:
-
-### Method A: Automated GitHub Actions (Recommended)
-1. Initialize git and push this repository to GitHub:
-   ```bash
-   git init
-   git add .
-   git commit -m "Initial wedding website commit"
-   git branch -M main
-   git remote add origin https://github.com/<YOUR_USERNAME>/<REPO_NAME>.git
-   git push -u origin main
-   ```
-2. On GitHub, go to your repository **Settings** → **Pages**.
-3. Under **Build and deployment** > **Source**, select **GitHub Actions**.
-4. The workflow at `.github/workflows/deploy.yml` will automatically build and publish your website! Your site will be live at `https://<YOUR_USERNAME>.github.io/<REPO_NAME>/`.
+```typescript
+// Example async API fetch:
+export async function lookupGuestFromDb(query: string): Promise<GuestProfile | null> {
+  const response = await fetch(`/api/guests?name=${encodeURIComponent(query)}`);
+  return await response.json();
+}
+```
 
 ---
 
-## 📱 WhatsApp & Social Sharing
-Custom Open Graph tags are pre-configured in `index.html` so when you paste the website link on WhatsApp or iMessage, an auspicious preview card appears with the title and invitation note.
+## 🌐 Deploy to GitHub Pages (Free)
+
+The project includes pre-configured relative paths in `vite.config.ts` and an automated GitHub Actions deployment workflow in `.github/workflows/deploy.yml`.
+
+To deploy:
+```bash
+git add .
+git commit -m "Update portal for Shreyas & Neevedita"
+git push origin main
+```
+In your GitHub repo:
+1. Navigate to **Settings** → **Pages**.
+2. Under **Build and deployment** > **Source**, select **GitHub Actions**.
+3. Your site will automatically build and publish!

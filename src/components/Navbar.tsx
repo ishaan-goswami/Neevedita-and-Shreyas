@@ -1,16 +1,14 @@
 import React, { useState } from 'react';
-import { Menu, X, Heart } from 'lucide-react';
+import { Menu, X, Heart, Search } from 'lucide-react';
 import { weddingConfig } from '../weddingConfig';
 
 export const Navbar: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navLinks = [
-    { name: 'Our Story', href: '#story' },
-    { name: 'Events', href: '#events' },
-    { name: 'The Seven Vows', href: '#vows' },
-    { name: 'Venue & Travel', href: '#venue' },
-    { name: 'RSVP', href: '#rsvp', isCta: true },
+    { name: 'Find My Events', href: '#find-events' },
+    { name: 'Venue & Stay', href: '#overview' },
+    { name: 'RSVP Portal', href: '#find-events', isCta: true },
   ];
 
   return (
@@ -20,36 +18,35 @@ export const Navbar: React.FC = () => {
           {/* Logo / Monogram */}
           <a
             href="#"
-            className="flex items-center space-x-2 group focus:outline-none"
+            className="flex items-center space-x-2.5 group focus:outline-none"
             aria-label="Back to top"
           >
             <div className="w-8 h-8 rounded-full border border-gold/60 flex items-center justify-center bg-ivory-200 group-hover:border-gold transition-colors">
               <span className="font-serif text-sm font-bold text-maroon">
-                {weddingConfig.couple.groom.firstName[0]}
-                <span className="text-gold">&</span>
-                {weddingConfig.couple.bride.firstName[0]}
+                S<span className="text-gold">&</span>N
               </span>
             </div>
-            <div className="hidden sm:block">
-              <span className="font-serif text-lg tracking-wider text-charcoal group-hover:text-maroon transition-colors">
+            <div>
+              <span className="font-serif text-base sm:text-lg tracking-wider text-charcoal group-hover:text-maroon transition-colors">
                 {weddingConfig.couple.groom.firstName} & {weddingConfig.couple.bride.firstName}
               </span>
             </div>
           </a>
 
           {/* Desktop Navigation Links */}
-          <div className="hidden md:flex items-center space-x-7">
+          <div className="hidden md:flex items-center space-x-6">
             {navLinks.map((link) => (
               <a
                 key={link.name}
                 href={link.href}
-                className={`text-sm tracking-widest uppercase transition-all duration-200 ${
+                className={`text-xs sm:text-sm tracking-widest uppercase transition-all duration-200 ${
                   link.isCta
-                    ? 'px-4 py-1.5 rounded-full bg-maroon text-ivory-50 hover:bg-maroon-dark hover:shadow-md border border-gold/40 font-semibold'
-                    : 'text-charcoal-light hover:text-maroon font-medium relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-gold hover:after:w-full after:transition-all'
+                    ? 'px-4 py-2 rounded-full bg-maroon text-ivory-50 hover:bg-maroon-dark hover:shadow-md border border-gold/40 font-semibold flex items-center space-x-1.5'
+                    : 'text-charcoal-light hover:text-maroon font-medium'
                 }`}
               >
-                {link.name}
+                {link.isCta && <Search className="w-3.5 h-3.5" />}
+                <span>{link.name}</span>
               </a>
             ))}
           </div>
@@ -76,7 +73,7 @@ export const Navbar: React.FC = () => {
               key={link.name}
               href={link.href}
               onClick={() => setMobileMenuOpen(false)}
-              className={`block py-2 text-sm tracking-widest uppercase ${
+              className={`block py-2 text-xs uppercase tracking-widest ${
                 link.isCta
                   ? 'text-center mt-3 py-2.5 rounded-md bg-maroon text-ivory-50 font-semibold shadow'
                   : 'text-charcoal hover:text-maroon'

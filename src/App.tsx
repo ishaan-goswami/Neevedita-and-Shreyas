@@ -1,11 +1,8 @@
 import { useState } from 'react';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
-import { OurStory } from './components/OurStory';
-import { Schedule } from './components/Schedule';
-import { Saptapadi } from './components/Saptapadi';
+import { GuestLookupSection } from './components/GuestLookupSection';
 import { VenueSection } from './components/VenueSection';
-import { RsvpSection } from './components/RsvpSection';
 import { Footer } from './components/Footer';
 import { MusicPlayer } from './components/MusicPlayer';
 import { FloatingPetals } from './components/FloatingPetals';
@@ -16,20 +13,22 @@ export function App() {
 
   return (
     <div className="min-h-screen bg-ivory-100 text-charcoal font-sans relative selection:bg-gold-light selection:text-maroon">
-      {/* Ambient Floating Marigold/Rose Petals */}
+      {/* Ambient Floating Marigold & Rose Petals */}
       <FloatingPetals count={12} enabled={petalsEnabled} />
 
-      {/* Navigation Bar */}
+      {/* Top Navigation */}
       <Navbar />
 
-      {/* Main Sections */}
+      {/* Main Content */}
       <main>
+        {/* Welcome & Auspicious Invocation Hero */}
         <Hero />
-        <OurStory />
-        <Schedule />
-        <Saptapadi />
+
+        {/* Core Guest Invitation & Event Finder Portal */}
+        <GuestLookupSection />
+
+        {/* Venue, Map Directions & Guest Info */}
         <VenueSection />
-        <RsvpSection />
       </main>
 
       {/* Footer */}
@@ -38,11 +37,11 @@ export function App() {
       {/* Ambient Sitar / Shehnai Music Player */}
       <MusicPlayer />
 
-      {/* Floating Petals Toggle in lower left corner */}
+      {/* Floating Petals Toggle */}
       <button
         onClick={() => setPetalsEnabled(!petalsEnabled)}
         type="button"
-        title={petalsEnabled ? "Disable floating petals animation" : "Enable floating petals animation"}
+        title={petalsEnabled ? "Disable floating petals" : "Enable floating petals"}
         className="fixed bottom-6 left-6 z-40 p-2.5 rounded-full bg-ivory-50/90 hover:bg-ivory-200 border border-gold/40 shadow-md text-gold-dark hover:text-maroon transition-all duration-200 text-xs flex items-center space-x-1"
       >
         <Flower className={`w-4 h-4 ${petalsEnabled ? 'text-amber-500' : 'text-charcoal/40'}`} />
