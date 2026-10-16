@@ -49,6 +49,24 @@ export const GuestLookupSection: React.FC = () => {
     if (!query) return;
 
     setSearchedName(query);
+    const normalized = query.toLowerCase().replace(/\s+/g, ' ');
+
+    // STRICT: Only "ishaan goswami" is permitted
+    if (normalized !== 'ishaan goswami') {
+      setActiveGuest(null);
+      setNotFoundName(query);
+      setIsRsvpSubmitted(false);
+      setValidationError(null);
+
+      setTimeout(() => {
+        const notFoundEl = document.getElementById('invitation-not-found');
+        if (notFoundEl) {
+          notFoundEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
+      return;
+    }
+
     const matched = lookupGuest(query);
 
     if (matched) {

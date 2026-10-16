@@ -1,9 +1,19 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
+const buildTimestamp = Date.now();
+
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  // Using relative base path ensures seamless hosting on GitHub Pages (e.g., username.github.io/repository-name/)
   base: './',
+  build: {
+    rollupOptions: {
+      output: {
+        entryFileNames: `assets/app-${buildTimestamp}-[name].js`,
+        chunkFileNames: `assets/chunk-${buildTimestamp}-[name].js`,
+        assetFileNames: `assets/asset-${buildTimestamp}-[name].[ext]`,
+      },
+    },
+  },
 });
