@@ -100,7 +100,7 @@ export const weddingConfig: WeddingConfig = {
     },
     {
       role: "Vidhi & Mehendi",
-      name: "Duluth Residence",
+      name: "Goswami Residence",
       address: "8205 St. Marlo Fairway Drive, Duluth, GA 30097",
       googleMapsUrl: "https://maps.google.com/?q=8205+St.+Marlo+Fairway+Drive,+Duluth,+GA+30097",
       note: "Sacred morning Vedic rituals, Pithi ceremony & afternoon henna."
@@ -130,7 +130,7 @@ export const weddingConfig: WeddingConfig = {
       date: "Friday, May 28, 2027",
       time: "1:00 PM – 4:30 PM",
       muhuratNote: "Henna stations open at 1:15 PM",
-      venueName: "Duluth Residence",
+      venueName: "Goswami Residence",
       hallName: "Outdoor Garden Terrace & Lawns",
       cityState: "Duluth, GA",
       address: "8205 St. Marlo Fairway Drive, Duluth, GA 30097",
@@ -180,7 +180,7 @@ export const weddingConfig: WeddingConfig = {
       date: "Saturday, May 29, 2027",
       time: "9:30 AM – 1:30 PM",
       muhuratNote: "Puja begins promptly at 9:45 AM",
-      venueName: "Duluth Residence",
+      venueName: "Goswami Residence",
       hallName: "The Sacred Mandap Pavilion",
       cityState: "Duluth, GA",
       address: "8205 St. Marlo Fairway Drive, Duluth, GA 30097",
