@@ -375,12 +375,6 @@ export const GuestLookupSection: React.FC = () => {
                               </p>
                             </div>
                           </div>
-
-                          {ev.muhuratNote && (
-                            <span className="px-2 py-0.5 rounded-full bg-gold-light/30 border border-gold/30 text-[10px] font-serif font-semibold text-charcoal">
-                              {ev.muhuratNote}
-                            </span>
-                          )}
                         </div>
 
                         <h4 className="text-2xl sm:text-3xl font-serif text-charcoal mb-2">
