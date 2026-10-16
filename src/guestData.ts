@@ -40,36 +40,31 @@ export const mockGuestsDatabase: GuestProfile[] = [
 
 /**
  * Smart Lookup for Guest Name
- * Matches exact, substring, or family name (e.g. "Goswami", "Ishaan Goswami", "The Goswamis")
+ * Matches exact name, full name, or family word match (e.g. "Goswami", "Ishaan Goswami", "The Goswami Family")
  */
 export function lookupGuest(query: string): GuestProfile | null {
   const clean = query.trim().toLowerCase();
-  if (!clean) return null;
+  // Require at least 3 characters to search
+  if (!clean || clean.length < 3) return null;
 
-  // Special match for Goswami variations
-  if (clean.includes("goswami")) {
-    return mockGuestsDatabase[0];
-  }
-
-  // 1. Exact match
+  // 1. Exact match (case-insensitive)
   const exact = mockGuestsDatabase.find(
     (g) => g.name.toLowerCase() === clean
   );
   if (exact) return exact;
 
-  // 2. Substring match
-  const contains = mockGuestsDatabase.find((g) =>
-    g.name.toLowerCase().includes(clean) || clean.includes(g.name.toLowerCase())
-  );
-  if (contains) return contains;
+  // 2. Special match for Goswami variations (only if contains the full word "goswami")
+  if (clean.includes("goswami")) {
+    return mockGuestsDatabase[0];
+  }
 
-  // 3. Word match (first or last name)
-  const words = clean.split(/\s+/);
-  const wordMatch = mockGuestsDatabase.find((g) => {
-    const guestWords = g.name.toLowerCase().split(/\s+/);
-    return words.some((w) => w.length > 2 && guestWords.includes(w));
-  });
-  if (wordMatch) return wordMatch;
+  // 3. Whole word / token match (e.g. searching "Ishaan Goswami" matches "Goswami")
+  const queryWords = clean.split(/\s+/).filter((w) => w.length >= 3);
+  for (const guest of mockGuestsDatabase) {
+    const guestWords = guest.name.toLowerCase().split(/\s+/).filter((w) => w.length >= 3);
+    const hasCommonWord = queryWords.some((qw) => guestWords.includes(qw));
+    if (hasCommonWord) return guest;
+  }
 
   return null;
 }

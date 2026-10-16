@@ -19,14 +19,15 @@ import {
   MessageSquare,
   Palette,
   RotateCcw,
-  Heart
+  Heart,
+  SearchX
 } from 'lucide-react';
 
 export const GuestLookupSection: React.FC = () => {
   const [searchInput, setSearchInput] = useState('');
   const [activeGuest, setActiveGuest] = useState<GuestProfile | null>(null);
   const [searchedName, setSearchedName] = useState('');
-  const [isGenericFallback, setIsGenericFallback] = useState(false);
+  const [notFoundName, setNotFoundName] = useState<string | null>(null);
 
   // RSVP Form State
   const [rsvpAttendingEvents, setRsvpAttendingEvents] = useState<string[]>([]);
@@ -44,40 +45,38 @@ export const GuestLookupSection: React.FC = () => {
 
     if (matched) {
       setActiveGuest(matched);
-      setIsGenericFallback(false);
+      setNotFoundName(null);
       setRsvpAttendingEvents(matched.invitedEventIds);
       setGuestCount(Math.min(2, 1 + (matched.allowedPlusOnes || 0)));
+      setIsRsvpSubmitted(false);
+
+      // Smooth scroll down to personalized results
+      setTimeout(() => {
+        const resultsEl = document.getElementById('invitation-results');
+        if (resultsEl) {
+          resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
     } else {
-      // Fallback preview for any arbitrary name
-      const fallbackGuest: GuestProfile = {
-        id: `guest-custom-${Date.now()}`,
-        name: query,
-        allowedPlusOnes: 1,
-        invitedEventIds: weddingConfig.events.map((e) => e.id),
-        note: "We are delighted to celebrate with you in Atlanta, Georgia!"
-      };
-      setActiveGuest(fallbackGuest);
-      setIsGenericFallback(true);
-      setRsvpAttendingEvents(fallbackGuest.invitedEventIds);
-      setGuestCount(1);
+      // Name not found in guest list - do NOT show events
+      setActiveGuest(null);
+      setNotFoundName(query);
+      setIsRsvpSubmitted(false);
+
+      setTimeout(() => {
+        const notFoundEl = document.getElementById('invitation-not-found');
+        if (notFoundEl) {
+          notFoundEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
     }
-
-    setIsRsvpSubmitted(false);
-
-    // Smooth scroll down to personalized results
-    setTimeout(() => {
-      const resultsEl = document.getElementById('invitation-results');
-      if (resultsEl) {
-        resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    }, 100);
   };
 
   const handleReset = () => {
     setActiveGuest(null);
+    setNotFoundName(null);
     setSearchInput('');
     setSearchedName('');
-    setIsGenericFallback(false);
     setIsRsvpSubmitted(false);
   };
 
@@ -215,6 +214,36 @@ export const GuestLookupSection: React.FC = () => {
           </form>
         </div>
 
+        {/* ================= NOT FOUND CARD ================= */}
+        {notFoundName && !activeGuest && (
+          <div id="invitation-not-found" className="bg-ivory-50 rounded-2xl border border-gold/40 p-8 sm:p-10 text-center max-w-xl mx-auto shadow-sm animate-fadeIn mb-12">
+            <div className="w-14 h-14 rounded-full bg-sandstone/60 border border-gold/30 text-maroon flex items-center justify-center mx-auto mb-4">
+              <SearchX className="w-6 h-6" />
+            </div>
+
+            <h3 className="text-2xl sm:text-3xl font-serif text-charcoal font-normal mb-2">
+              No Invitation Found
+            </h3>
+
+            <p className="text-sm font-serif text-maroon font-medium mb-3">
+              We couldn't locate an invitation for "{notFoundName}".
+            </p>
+
+            <p className="text-xs sm:text-sm text-charcoal-light font-serif leading-relaxed mb-6">
+              Please double-check the spelling, or try entering your last or family name (e.g. "Goswami"). If you believe this is an error, please reach out directly to Shreyas or Neevedita.
+            </p>
+
+            <button
+              type="button"
+              onClick={handleReset}
+              className="inline-flex items-center space-x-2 px-6 py-2.5 rounded-full bg-ivory-100 hover:bg-gold-light/30 border border-gold/40 text-xs text-charcoal font-medium uppercase tracking-wider transition-colors shadow-xs"
+            >
+              <RotateCcw className="w-3.5 h-3.5 text-maroon" />
+              <span>Try Another Name</span>
+            </button>
+          </div>
+        )}
+
         {/* ================= PERSONALIZED RESULTS CONTAINER ================= */}
         {activeGuest && (
           <div id="invitation-results" className="space-y-10 animate-fadeIn">
@@ -256,12 +285,6 @@ export const GuestLookupSection: React.FC = () => {
                   </button>
                 </div>
               </div>
-
-              {isGenericFallback && (
-                <div className="mt-4 p-3 rounded-lg bg-amber-50/80 border border-amber-200 text-amber-900 text-xs font-sans">
-                  <strong>Note:</strong> Showing full 5-event schedule preview for "{activeGuest.name}". When you connect your live database later, each guest will automatically see only their designated events.
-                </div>
-              )}
             </div>
 
             {/* List of Specific Events Invited To */}
