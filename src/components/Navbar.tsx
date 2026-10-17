@@ -10,9 +10,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenHostPortal }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navLinks = [
-    { name: 'Find My Events', href: '#find-events' },
     { name: 'Venue & Stay', href: '#overview' },
-    { name: 'RSVP Portal', href: '#find-events', isCta: true },
+    { name: 'RSVP', href: '#find-events', isCta: true },
   ];
 
   return (
