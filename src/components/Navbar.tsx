@@ -11,7 +11,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenHostPortal }) => {
 
   const navLinks = [
     { name: 'Venue & Stay', href: '#overview' },
-    { name: 'RSVP', href: '#find-events', isCta: true },
+    { name: 'RSVP & Events', href: '#find-events', isCta: true },
   ];
 
   return (
