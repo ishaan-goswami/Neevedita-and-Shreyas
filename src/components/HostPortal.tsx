@@ -83,12 +83,25 @@ export const HostPortal: React.FC<HostPortalProps> = ({ onClose }) => {
 
     const rows = rsvps.map((r) => {
       const eventStatuses = weddingConfig.events.map((e) => {
+        if (r.eventAttendees && r.eventAttendees[e.id]) {
+          const attendees = r.eventAttendees[e.id] || [];
+          const declines = r.eventDeclines ? r.eventDeclines[e.id] || [] : [];
+          if (attendees.length > 0 && declines.length > 0) {
+            return `${attendees.length} Yes (${attendees.join(';')}) / ${declines.length} No (${declines.join(';')})`;
+          } else if (attendees.length > 0) {
+            return `Yes (${attendees.join(';')})`;
+          } else {
+            return `No (${declines.join(';')})`;
+          }
+        }
         const resp = r.eventResponses[e.id];
         return resp === 'yes' ? 'Yes (Attending)' : 'No (Declined)';
       });
 
+      const partyName = r.familyGroupName ? `${r.guestName} (${r.familyGroupName})` : r.guestName;
+
       return [
-        `"${r.guestName}"`,
+        `"${partyName}"`,
         r.guestCount,
         ...eventStatuses.map((s) => `"${s}"`),
         `"${(r.blessingMessage || '').replace(/"/g, '""')}"`,
@@ -131,13 +144,28 @@ export const HostPortal: React.FC<HostPortalProps> = ({ onClose }) => {
     const declinedGuests: string[] = [];
 
     rsvps.forEach((r) => {
-      const resp = r.eventResponses[eventId];
-      if (resp === 'yes') {
-        attendingHeadcount += r.guestCount || 1;
-        attendingGuests.push(`${r.guestName} (${r.guestCount})`);
-      } else if (resp === 'no') {
-        declinedHeadcount += r.guestCount || 1;
-        declinedGuests.push(`${r.guestName}`);
+      if (r.eventAttendees && r.eventAttendees[eventId] !== undefined) {
+        const attendees = r.eventAttendees[eventId] || [];
+        const declines = r.eventDeclines ? r.eventDeclines[eventId] || [] : [];
+
+        attendingHeadcount += attendees.length;
+        declinedHeadcount += declines.length;
+
+        if (attendees.length > 0) {
+          attendingGuests.push(...attendees);
+        }
+        if (declines.length > 0) {
+          declinedGuests.push(...declines);
+        }
+      } else {
+        const resp = r.eventResponses[eventId];
+        if (resp === 'yes') {
+          attendingHeadcount += r.guestCount || 1;
+          attendingGuests.push(`${r.guestName} (${r.guestCount})`);
+        } else if (resp === 'no') {
+          declinedHeadcount += r.guestCount || 1;
+          declinedGuests.push(`${r.guestName}`);
+        }
       }
     });
 
@@ -379,7 +407,7 @@ export const HostPortal: React.FC<HostPortalProps> = ({ onClose }) => {
               </div>
               <h4 className="text-lg font-serif text-charcoal">No Responses Recorded Yet</h4>
               <p className="text-xs sm:text-sm text-charcoal-light font-serif max-w-md mx-auto">
-                To test this: Click "Back to Site", enter <strong>"Ishaan Goswami"</strong>, select Yes/No for each ceremony, and click Submit. When you unlock this portal again, your responses will appear here instantly!
+                To test this: Click "Back to Site", enter <strong>"Yogesh Goswami"</strong>, <strong>"Jigna Goswami"</strong>, <strong>"Keya Goswami"</strong>, or <strong>"Ishaan Goswami"</strong>, select Yes/No for each family member, and submit. When you unlock this portal again, your family attendance and headcounts will appear here instantly!
               </p>
             </div>
           ) : (
@@ -387,7 +415,7 @@ export const HostPortal: React.FC<HostPortalProps> = ({ onClose }) => {
               <table className="w-full text-left text-xs text-charcoal">
                 <thead className="bg-ivory-200/80 uppercase tracking-wider font-semibold text-gold-dark border-b border-gold/25 text-[10px]">
                   <tr>
-                    <th className="px-5 py-3.5">Guest Name</th>
+                    <th className="px-5 py-3.5">Guest / Family</th>
                     <th className="px-4 py-3.5">Guests</th>
                     <th className="px-3 py-3.5 text-center">Mehendi</th>
                     <th className="px-3 py-3.5 text-center">Garba</th>
@@ -401,8 +429,15 @@ export const HostPortal: React.FC<HostPortalProps> = ({ onClose }) => {
                 <tbody className="divide-y divide-gold/15">
                   {rsvps.map((record) => (
                     <tr key={record.id} className="hover:bg-gold-light/10 transition-colors">
-                      <td className="px-5 py-4 font-serif font-semibold text-sm text-charcoal">
-                        {record.guestName}
+                      <td className="px-5 py-4">
+                        <div className="font-serif font-semibold text-sm text-charcoal">
+                          {record.guestName}
+                        </div>
+                        {record.familyGroupName && (
+                          <span className="text-[10px] text-gold-dark font-sans block mt-0.5">
+                            {record.familyGroupName} ({record.familyMembers?.join(', ') || `${record.guestCount} members`})
+                          </span>
+                        )}
                       </td>
 
                       <td className="px-4 py-4 font-mono font-medium">
@@ -411,6 +446,60 @@ export const HostPortal: React.FC<HostPortalProps> = ({ onClose }) => {
 
                       {/* Per-event Yes/No indicators */}
                       {['mehendi', 'garba', 'vidhi', 'lagna', 'reception'].map((eventId) => {
+                        // Check if record has detailed member attendance
+                        if (record.eventAttendees && record.eventAttendees[eventId] !== undefined) {
+                          const attendees = record.eventAttendees[eventId] || [];
+                          const declines = record.eventDeclines ? record.eventDeclines[eventId] || [] : [];
+                          const total = attendees.length + declines.length;
+
+                          if (total === 0) {
+                            return (
+                              <td key={eventId} className="px-3 py-4 text-center">
+                                <span className="text-charcoal-light/40">—</span>
+                              </td>
+                            );
+                          }
+
+                          if (attendees.length === total) {
+                            return (
+                              <td key={eventId} className="px-3 py-4 text-center">
+                                <span
+                                  className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300"
+                                  title={`Attending (${total}): ${attendees.join(', ')}`}
+                                >
+                                  <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                                  <span>{total === 1 ? 'Yes' : `${total} Yes`}</span>
+                                </span>
+                              </td>
+                            );
+                          }
+
+                          if (attendees.length === 0) {
+                            return (
+                              <td key={eventId} className="px-3 py-4 text-center">
+                                <span
+                                  className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-rose-100 text-rose-800 border border-rose-300"
+                                  title={`Declined (${total}): ${declines.join(', ')}`}
+                                >
+                                  <XCircle className="w-3 h-3 text-rose-600" />
+                                  <span>{total === 1 ? 'No' : `${total} No`}</span>
+                                </span>
+                              </td>
+                            );
+                          }
+
+                          return (
+                            <td key={eventId} className="px-3 py-4 text-center">
+                              <span
+                                className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300"
+                                title={`Attending: ${attendees.join(', ')} | Declined: ${declines.join(', ')}`}
+                              >
+                                <span>{attendees.length} Yes / {declines.length} No</span>
+                              </span>
+                            </td>
+                          );
+                        }
+
                         const status = record.eventResponses[eventId];
                         const isYes = status === 'yes';
 

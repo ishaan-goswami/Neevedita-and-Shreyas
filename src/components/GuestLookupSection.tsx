@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import confetti from 'canvas-confetti';
 import { weddingConfig, WeddingEvent } from '../weddingConfig';
-import { lookupGuest, GuestProfile } from '../guestData';
+import { lookupGuest, getFamilyMembers, GuestProfile } from '../guestData';
 import { GuestRsvpRecord, RSVP_STORAGE_KEY } from '../types/rsvp';
 import { MandalaDivider } from './MandalaDivider';
 import {
@@ -22,7 +22,8 @@ import {
   Palette,
   RotateCcw,
   Heart,
-  SearchX
+  SearchX,
+  Users
 } from 'lucide-react';
 
 export const GuestLookupSection: React.FC = () => {
@@ -31,16 +32,61 @@ export const GuestLookupSection: React.FC = () => {
   const [searchedName, setSearchedName] = useState('');
   const [notFoundName, setNotFoundName] = useState<string | null>(null);
 
-  // Per-event RSVP Yes / No state: { [eventId]: 'yes' | 'no' }
-  // Defaults to empty so the guest MUST explicitly choose Yes or No
-  const [eventResponses, setEventResponses] = useState<Record<string, 'yes' | 'no'>>({});
-  const [guestCount, setGuestCount] = useState(1);
+  // Per-member per-event responses: { [memberId]: { [eventId]: 'yes' | 'no' } }
+  // Stored empty initially so guests must explicitly make their selections
+  const [memberResponses, setMemberResponses] = useState<Record<string, Record<string, 'yes' | 'no'>>>({});
   const [blessingMessage, setBlessingMessage] = useState('');
   const [isRsvpSubmitted, setIsRsvpSubmitted] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
 
-  const handleSelectEventResponse = (eventId: string, response: 'yes' | 'no') => {
-    setEventResponses((prev) => ({ ...prev, [eventId]: response }));
+  // Family members list: active guest is positioned first (as the responding guest), followed by their family members
+  const familyMembers: GuestProfile[] = activeGuest
+    ? activeGuest.familyId
+      ? [activeGuest, ...getFamilyMembers(activeGuest.familyId).filter((m) => m.id !== activeGuest.id)]
+      : [activeGuest]
+    : [];
+
+  // Filter events based on active guest invitation (all 5 for family)
+  const invitedEvents: WeddingEvent[] = activeGuest
+    ? weddingConfig.events.filter((e) => activeGuest.invitedEventIds.includes(e.id))
+    : [];
+
+  const handleSelectMemberEventResponse = (memberId: string, eventId: string, response: 'yes' | 'no') => {
+    setMemberResponses((prev) => ({
+      ...prev,
+      [memberId]: {
+        ...(prev[memberId] || {}),
+        [eventId]: response,
+      },
+    }));
+    setValidationError(null);
+  };
+
+  const handleSelectAllMembersForEvent = (eventId: string, response: 'yes' | 'no') => {
+    setMemberResponses((prev) => {
+      const updated = { ...prev };
+      familyMembers.forEach((m) => {
+        updated[m.id] = {
+          ...(updated[m.id] || {}),
+          [eventId]: response,
+        };
+      });
+      return updated;
+    });
+    setValidationError(null);
+  };
+
+  const handleSelectAllFamilyAllEvents = (response: 'yes' | 'no') => {
+    setMemberResponses(() => {
+      const updated: Record<string, Record<string, 'yes' | 'no'>> = {};
+      familyMembers.forEach((m) => {
+        updated[m.id] = {};
+        invitedEvents.forEach((ev) => {
+          updated[m.id][ev.id] = response;
+        });
+      });
+      return updated;
+    });
     setValidationError(null);
   };
 
@@ -49,35 +95,36 @@ export const GuestLookupSection: React.FC = () => {
     if (!query) return;
 
     setSearchedName(query);
-    const normalized = query.toLowerCase().replace(/\s+/g, ' ');
-
-    // STRICT: Only "ishaan goswami" is permitted
-    if (normalized !== 'ishaan goswami') {
-      setActiveGuest(null);
-      setNotFoundName(query);
-      setIsRsvpSubmitted(false);
-      setValidationError(null);
-
-      setTimeout(() => {
-        const notFoundEl = document.getElementById('invitation-not-found');
-        if (notFoundEl) {
-          notFoundEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      }, 100);
-      return;
-    }
-
     const matched = lookupGuest(query);
 
     if (matched) {
       setActiveGuest(matched);
       setNotFoundName(null);
-
-      // Do NOT default to 'yes' - start empty so the user picks what they want
-      setEventResponses({});
-      setGuestCount(1 + (matched.allowedPlusOnes || 0));
       setIsRsvpSubmitted(false);
       setValidationError(null);
+
+      // Check if this family / guest already has a recorded RSVP to pre-load
+      try {
+        const existing: GuestRsvpRecord[] = JSON.parse(
+          localStorage.getItem(RSVP_STORAGE_KEY) || localStorage.getItem('shreyas_neevedita_wedding_rsvps') || '[]'
+        );
+        const savedRecord = existing.find(
+          (r) =>
+            (r.familyId && matched.familyId && r.familyId === matched.familyId) ||
+            r.guestName.toLowerCase() === matched.name.toLowerCase()
+        );
+
+        if (savedRecord && savedRecord.memberResponses) {
+          setMemberResponses(savedRecord.memberResponses);
+          setBlessingMessage(savedRecord.blessingMessage || '');
+        } else {
+          setMemberResponses({});
+          setBlessingMessage('');
+        }
+      } catch {
+        setMemberResponses({});
+        setBlessingMessage('');
+      }
 
       // Smooth scroll down to personalized results
       setTimeout(() => {
@@ -108,14 +155,10 @@ export const GuestLookupSection: React.FC = () => {
     setSearchInput('');
     setSearchedName('');
     setIsRsvpSubmitted(false);
-    setEventResponses({});
+    setMemberResponses({});
+    setBlessingMessage('');
     setValidationError(null);
   };
-
-  // Filter events based on active guest invitation
-  const invitedEvents: WeddingEvent[] = activeGuest
-    ? weddingConfig.events.filter((e) => activeGuest.invitedEventIds.includes(e.id))
-    : [];
 
   const getEventIcon = (iconName: WeddingEvent['iconName']) => {
     switch (iconName) {
@@ -146,24 +189,51 @@ export const GuestLookupSection: React.FC = () => {
 
   const handleRsvpSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!activeGuest) return;
 
-    // Verify all invited events have an explicit response
-    const unselectedEvents = invitedEvents.filter((ev) => !eventResponses[ev.id]);
-    if (unselectedEvents.length > 0) {
-      const names = unselectedEvents.map((ev) => ev.name).join(', ');
-      setValidationError(`Please select "Yes" or "No" for: ${names}`);
-      const firstEl = document.getElementById(`event-card-${unselectedEvents[0].id}`);
-      if (firstEl) {
-        firstEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    // Verify all members have an explicit response for each invited event
+    for (const ev of invitedEvents) {
+      for (const m of familyMembers) {
+        const resp = memberResponses[m.id]?.[ev.id];
+        if (!resp) {
+          setValidationError(`Please select "Yes" or "No" for ${m.name} for ${ev.name}`);
+          const firstEl = document.getElementById(`event-card-${ev.id}`);
+          if (firstEl) {
+            firstEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+          return;
+        }
       }
-      return;
     }
+
+    const eventResponses: Record<string, 'yes' | 'no'> = {};
+    const eventAttendees: Record<string, string[]> = {};
+    const eventDeclines: Record<string, string[]> = {};
+
+    invitedEvents.forEach((ev) => {
+      const attendees = familyMembers
+        .filter((m) => memberResponses[m.id]?.[ev.id] === 'yes')
+        .map((m) => m.name);
+      const declines = familyMembers
+        .filter((m) => memberResponses[m.id]?.[ev.id] === 'no')
+        .map((m) => m.name);
+
+      eventAttendees[ev.id] = attendees;
+      eventDeclines[ev.id] = declines;
+      eventResponses[ev.id] = attendees.length > 0 ? 'yes' : 'no';
+    });
 
     const newRecord: GuestRsvpRecord = {
       id: `rsvp-${Date.now()}`,
-      guestName: activeGuest?.name || searchedName,
-      guestCount,
+      guestName: activeGuest.name,
+      familyId: activeGuest.familyId,
+      familyGroupName: activeGuest.familyGroupName || 'The Goswami Family',
+      familyMembers: familyMembers.map((m) => m.name),
+      guestCount: familyMembers.length,
       eventResponses,
+      memberResponses,
+      eventAttendees,
+      eventDeclines,
       blessingMessage,
       submittedAt: new Date().toLocaleString(),
     };
@@ -172,10 +242,13 @@ export const GuestLookupSection: React.FC = () => {
       const existing: GuestRsvpRecord[] = JSON.parse(
         localStorage.getItem(RSVP_STORAGE_KEY) || localStorage.getItem('shreyas_neevedita_wedding_rsvps') || '[]'
       );
-      // Replace existing submission for this guest if updated, or prepend
-      const filtered = existing.filter(
-        (r) => r.guestName.toLowerCase() !== newRecord.guestName.toLowerCase()
-      );
+      // Replace existing submission for this family group if updated, or prepend
+      const filtered = existing.filter((r) => {
+        if (newRecord.familyId && r.familyId) {
+          return r.familyId !== newRecord.familyId;
+        }
+        return r.guestName.toLowerCase() !== newRecord.guestName.toLowerCase();
+      });
       localStorage.setItem(RSVP_STORAGE_KEY, JSON.stringify([newRecord, ...filtered]));
     } catch {
       // ignore
@@ -197,22 +270,30 @@ export const GuestLookupSection: React.FC = () => {
 
   const generateWhatsAppUrl = () => {
     const name = activeGuest?.name || searchedName;
-    const yesEvents = weddingConfig.events
-      .filter((e) => eventResponses[e.id] === 'yes')
-      .map((e) => e.name)
-      .join(', ');
-    const noEvents = weddingConfig.events
-      .filter((e) => eventResponses[e.id] === 'no')
-      .map((e) => e.name)
-      .join(', ');
+    const groupTitle = activeGuest?.familyGroupName || 'The Goswami Family';
+
+    const eventSummaries = weddingConfig.events
+      .map((e) => {
+        const attendees = familyMembers
+          .filter((m) => memberResponses[m.id]?.[e.id] === 'yes')
+          .map((m) => m.name);
+        if (attendees.length === familyMembers.length) {
+          return `• ${e.name}: All ${familyMembers.length} Attending`;
+        } else if (attendees.length > 0) {
+          return `• ${e.name}: ${attendees.length} Attending (${attendees.join(', ')})`;
+        } else {
+          return `• ${e.name}: Unable to Attend`;
+        }
+      })
+      .join('\n');
 
     const text = encodeURIComponent(
       `*Wedding RSVP Confirmation for Neevedita & Shreyas*\n` +
       `📍 Location: Atlanta, Georgia (May 28-30)\n` +
-      `👤 Guest Name: ${name}\n` +
-      `👥 Total Attending: ${guestCount}\n` +
-      `✅ Attending Ceremonies: ${yesEvents || 'None'}\n` +
-      (noEvents ? `❌ Unable to Attend: ${noEvents}\n` : '') +
+      `👤 Responding Guest: ${name}\n` +
+      `👨‍👩‍👧‍👦 Family: ${groupTitle} (${familyMembers.length} Members)\n` +
+      `👥 Members: ${familyMembers.map((m) => m.name).join(', ')}\n\n` +
+      `*Ceremony Attendance:*\n${eventSummaries}\n\n` +
       `💌 Message: ${blessingMessage || 'Looking forward to celebrating with you!'}`
     );
     return `https://wa.me/${weddingConfig.rsvp.contactPhone}?text=${text}`;
@@ -231,7 +312,7 @@ export const GuestLookupSection: React.FC = () => {
           </h2>
           <MandalaDivider className="my-5" />
           <p className="text-sm sm:text-base text-charcoal-light font-serif leading-relaxed">
-            Please enter your full name below to access your ceremony schedule and RSVP for each event.
+            Please enter your full name below to access your ceremony schedule and RSVP for yourself and your family.
           </p>
         </div>
 
@@ -245,7 +326,7 @@ export const GuestLookupSection: React.FC = () => {
             className="space-y-4"
           >
             <label className="block text-xs uppercase tracking-wider font-semibold text-charcoal">
-              Enter Guest or Family Name
+              Enter Guest Name
             </label>
             <div className="relative flex flex-col sm:flex-row gap-3">
               <div className="relative flex-1">
@@ -260,10 +341,10 @@ export const GuestLookupSection: React.FC = () => {
                       setActiveGuest(null);
                       setNotFoundName(null);
                       setIsRsvpSubmitted(false);
-                      setEventResponses({});
+                      setMemberResponses({});
                     }
                   }}
-                  placeholder="e.g. Ishaan Goswami"
+                  placeholder="e.g. Yogesh Goswami, Jigna, Keya, or Ishaan"
                   className="w-full pl-12 pr-4 py-3 rounded-xl bg-ivory-50 border border-gold/40 focus:border-gold focus:outline-none text-charcoal text-sm sm:text-base transition-colors shadow-inner"
                 />
               </div>
@@ -275,6 +356,9 @@ export const GuestLookupSection: React.FC = () => {
                 <span>View My Events</span>
               </button>
             </div>
+            <p className="text-[11px] text-charcoal-light font-serif">
+              Tip: You can search by your first name or full name to access your family group invitation.
+            </p>
           </form>
         </div>
 
@@ -294,7 +378,7 @@ export const GuestLookupSection: React.FC = () => {
             </p>
 
             <p className="text-xs sm:text-sm text-charcoal-light font-serif leading-relaxed mb-6">
-              Please double-check the spelling (try searching by "Ishaan Goswami"). If you believe this is an error, please reach out directly to Neevedita or Shreyas.
+              Please enter your first and last name (try searching by "Yogesh Goswami", "Jigna Goswami", "Keya Goswami", or "Ishaan Goswami"). If you believe this is an error, please reach out directly to Neevedita or Shreyas.
             </p>
 
             <button
@@ -327,6 +411,15 @@ export const GuestLookupSection: React.FC = () => {
                   <p className="text-xs sm:text-sm text-gold-dark font-serif italic mt-1">
                     {activeGuest.note || "Neevedita & Shreyas are overjoyed to celebrate our wedding ceremonies with you in Atlanta."}
                   </p>
+
+                  {familyMembers.length > 1 && (
+                    <div className="mt-3 flex items-center space-x-2 text-xs text-charcoal-light">
+                      <Users className="w-4 h-4 text-maroon" />
+                      <span>
+                        Group Invitation for <strong>{activeGuest.familyGroupName || 'The Goswami Family'}</strong> ({familyMembers.length} Members)
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex items-center space-x-3">
@@ -351,34 +444,74 @@ export const GuestLookupSection: React.FC = () => {
               </div>
             </div>
 
+            {/* Family Group Quick-RSVP Bar */}
+            {familyMembers.length > 1 && (
+              <div className="bg-gradient-to-r from-ivory-100 via-gold-light/20 to-ivory-100 rounded-2xl border border-gold/40 p-5 shadow-xs">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div>
+                    <div className="flex items-center space-x-2 mb-1">
+                      <Users className="w-4 h-4 text-maroon" />
+                      <h4 className="text-sm sm:text-base font-serif font-semibold text-charcoal">
+                        Family Group RSVP: {activeGuest.familyGroupName || 'The Goswami Family'}
+                      </h4>
+                    </div>
+                    <p className="text-xs text-charcoal-light font-serif">
+                      You are RSVPing for all {familyMembers.length} members: {familyMembers.map((m) => m.name).join(', ')}.
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleSelectAllFamilyAllEvents('yes')}
+                      className="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold shadow-xs transition-colors flex items-center space-x-1.5"
+                    >
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>All {familyMembers.length} Attending All Events</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleSelectAllFamilyAllEvents('no')}
+                      className="px-3.5 py-2 rounded-xl bg-ivory-50 hover:bg-rose-50 border border-rose-200 text-rose-800 text-xs font-medium transition-colors"
+                    >
+                      <span>Decline All</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* List of Specific Events Invited To */}
             <div>
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h3 className="text-xl sm:text-2xl font-serif text-charcoal">
-                    Your Ceremony Schedule & In-Card RSVP
+                    Ceremony Schedule & In-Card RSVP
                   </h3>
                   <p className="text-xs sm:text-sm text-charcoal-light font-serif">
-                    Please select <strong>Yes (Attending)</strong> or <strong>No (Decline)</strong> inside each ceremony card below.
+                    Please indicate <strong>Yes (Attending)</strong> or <strong>No (Decline)</strong> for each family member under each ceremony.
                   </p>
                 </div>
               </div>
 
               <div className="grid md:grid-cols-2 gap-6">
                 {invitedEvents.map((ev, idx) => {
-                  const currentResponse = eventResponses[ev.id]; // 'yes' | 'no' | undefined
-                  const isYes = currentResponse === 'yes';
-                  const isNo = currentResponse === 'no';
+                  // Calculate summary for this event
+                  const eventMemberAnswers = familyMembers.map((m) => memberResponses[m.id]?.[ev.id]);
+                  const allAnswered = eventMemberAnswers.every(Boolean);
+                  const yesCount = eventMemberAnswers.filter((a) => a === 'yes').length;
+                  const noCount = eventMemberAnswers.filter((a) => a === 'no').length;
 
                   return (
                     <div
                       key={ev.id}
                       id={`event-card-${ev.id}`}
                       className={`relative flex flex-col justify-between bg-ivory-50 rounded-2xl border transition-all p-6 sm:p-7 ${
-                        isYes
+                        allAnswered && yesCount > 0
                           ? 'border-emerald-600/50 shadow-md ring-1 ring-emerald-500/20'
-                          : isNo
-                          ? 'border-rose-400/50 shadow-xs opacity-75'
+                          : allAnswered && yesCount === 0
+                          ? 'border-rose-400/50 shadow-xs opacity-80'
                           : 'border-gold/40 shadow-xs hover:border-gold'
                       }`}
                     >
@@ -445,65 +578,114 @@ export const GuestLookupSection: React.FC = () => {
                           <p className="text-[11px] text-charcoal-light font-serif italic">{ev.dressCodeSuggestion}</p>
                         </div>
 
-                        {/* ================= IN-CARD RSVP YES / NO TOGGLE ================= */}
-                        <div
-                          className={`p-3.5 rounded-xl border transition-all mb-4 ${
-                            isYes
-                              ? 'bg-emerald-50/60 border-emerald-300'
-                              : isNo
-                              ? 'bg-rose-50/60 border-rose-300'
-                              : 'bg-ivory-100/90 border-gold/40'
-                          }`}
-                        >
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        {/* ================= IN-CARD FAMILY RSVP SECTION ================= */}
+                        <div className="p-4 rounded-xl border border-gold/30 bg-ivory-100/80 mb-4 space-y-3">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gold/20 pb-2.5">
                             <div>
                               <span className="text-xs uppercase tracking-wider font-semibold text-charcoal block">
                                 RSVP for {ev.name}
                               </span>
                               <span className="text-[11px] font-serif">
-                                {isYes ? (
-                                  <span className="text-emerald-700 font-semibold inline-flex items-center gap-1">
-                                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 inline" /> Attending (Yes)
-                                  </span>
-                                ) : isNo ? (
-                                  <span className="text-rose-700 font-semibold inline-flex items-center gap-1">
-                                    <XCircle className="w-3.5 h-3.5 text-rose-600 inline" /> Decline (No)
-                                  </span>
+                                {allAnswered ? (
+                                  yesCount === familyMembers.length ? (
+                                    <span className="text-emerald-700 font-semibold inline-flex items-center gap-1">
+                                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 inline" />
+                                      All {familyMembers.length} Attending
+                                    </span>
+                                  ) : yesCount > 0 ? (
+                                    <span className="text-emerald-700 font-semibold inline-flex items-center gap-1">
+                                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 inline" />
+                                      {yesCount} Attending ({noCount} Declined)
+                                    </span>
+                                  ) : (
+                                    <span className="text-rose-700 font-semibold inline-flex items-center gap-1">
+                                      <XCircle className="w-3.5 h-3.5 text-rose-600 inline" />
+                                      All Declined
+                                    </span>
+                                  )
                                 ) : (
                                   <span className="text-amber-800 font-serif italic font-medium">
-                                    * Please choose Yes or No
+                                    * Please select Yes or No for each person
                                   </span>
                                 )}
                               </span>
                             </div>
 
-                            <div className="inline-flex rounded-xl p-1 bg-ivory-50 border border-gold/30 shadow-2xs self-start sm:self-auto">
+                            {/* Quick batch toggle for this ceremony */}
+                            <div className="inline-flex rounded-lg p-0.5 bg-ivory-50 border border-gold/30 self-start sm:self-auto">
                               <button
                                 type="button"
-                                onClick={() => handleSelectEventResponse(ev.id, 'yes')}
-                                className={`px-4 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1.5 transition-all ${
-                                  isYes
-                                    ? 'bg-emerald-600 text-white shadow-xs'
-                                    : 'text-charcoal hover:text-emerald-700 hover:bg-emerald-50'
-                                }`}
+                                onClick={() => handleSelectAllMembersForEvent(ev.id, 'yes')}
+                                className="px-2.5 py-1 text-[11px] font-semibold text-emerald-700 hover:bg-emerald-50 rounded"
+                                title="Mark all family members as attending this ceremony"
                               >
-                                <CheckCircle2 className="w-3.5 h-3.5" />
-                                <span>Yes</span>
+                                All Yes ({familyMembers.length})
                               </button>
-
+                              <span className="text-gold/40 self-center">|</span>
                               <button
                                 type="button"
-                                onClick={() => handleSelectEventResponse(ev.id, 'no')}
-                                className={`px-4 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1.5 transition-all ${
-                                  isNo
-                                    ? 'bg-rose-600 text-white shadow-xs'
-                                    : 'text-charcoal hover:text-rose-700 hover:bg-rose-50'
-                                }`}
+                                onClick={() => handleSelectAllMembersForEvent(ev.id, 'no')}
+                                className="px-2.5 py-1 text-[11px] font-semibold text-rose-700 hover:bg-rose-50 rounded"
+                                title="Mark all family members as declining this ceremony"
                               >
-                                <XCircle className="w-3.5 h-3.5" />
-                                <span>No</span>
+                                All No
                               </button>
                             </div>
+                          </div>
+
+                          {/* Member-by-Member Rows */}
+                          <div className="space-y-2 pt-1">
+                            {familyMembers.map((member) => {
+                              const resp = memberResponses[member.id]?.[ev.id];
+                              const isMemberYes = resp === 'yes';
+                              const isMemberNo = resp === 'no';
+                              const isSearchingGuest = member.id === activeGuest.id;
+
+                              return (
+                                <div
+                                  key={member.id}
+                                  className="flex items-center justify-between gap-2 p-2 rounded-lg bg-ivory-50/90 border border-gold/20"
+                                >
+                                  <div>
+                                    <span className="text-xs font-serif font-semibold text-charcoal block">
+                                      {member.name}
+                                    </span>
+                                    <span className="text-[10px] text-gold-dark font-sans block">
+                                      {member.relationship}
+                                      {isSearchingGuest && ' (You / Logged in)'}
+                                    </span>
+                                  </div>
+
+                                  <div className="inline-flex rounded-lg p-0.5 bg-ivory-100 border border-gold/30">
+                                    <button
+                                      type="button"
+                                      onClick={() => handleSelectMemberEventResponse(member.id, ev.id, 'yes')}
+                                      className={`px-3 py-1 rounded text-xs font-semibold flex items-center space-x-1 transition-all ${
+                                        isMemberYes
+                                          ? 'bg-emerald-600 text-white shadow-xs'
+                                          : 'text-charcoal hover:text-emerald-700 hover:bg-emerald-50'
+                                      }`}
+                                    >
+                                      <CheckCircle2 className="w-3 h-3" />
+                                      <span>Yes</span>
+                                    </button>
+
+                                    <button
+                                      type="button"
+                                      onClick={() => handleSelectMemberEventResponse(member.id, ev.id, 'no')}
+                                      className={`px-3 py-1 rounded text-xs font-semibold flex items-center space-x-1 transition-all ${
+                                        isMemberNo
+                                          ? 'bg-rose-600 text-white shadow-xs'
+                                          : 'text-charcoal hover:text-rose-700 hover:bg-rose-50'
+                                      }`}
+                                    >
+                                      <XCircle className="w-3 h-3" />
+                                      <span>No</span>
+                                    </button>
+                                  </div>
+                                </div>
+                              );
+                            })}
                           </div>
                         </div>
                       </div>
@@ -543,10 +725,10 @@ export const GuestLookupSection: React.FC = () => {
                     <CheckCircle2 className="w-7 h-7" />
                   </div>
                   <h3 className="text-2xl sm:text-3xl font-serif text-charcoal">
-                    RSVP Recorded for {activeGuest.name}!
+                    RSVP Recorded for {activeGuest.name} & {activeGuest.familyGroupName || 'Family'}!
                   </h3>
                   <p className="text-sm font-serif text-charcoal-light max-w-md mx-auto">
-                    Thank you for responding. Your ceremony attendance choices have been saved and sent to the host headcount!
+                    Thank you for responding on behalf of {familyMembers.map((m) => m.name).join(', ')}. Your ceremony attendance choices have been saved to the host headcount!
                   </p>
 
                   <div className="pt-2 max-w-sm mx-auto space-y-3">
@@ -573,33 +755,39 @@ export const GuestLookupSection: React.FC = () => {
                 <form onSubmit={handleRsvpSubmit} className="space-y-6">
                   <div className="border-b border-gold/25 pb-4">
                     <p className="text-xs uppercase tracking-widest text-gold-dark font-semibold mb-1">
-                      Finalize Your RSVP
+                      Finalize Your Family RSVP
                     </p>
                     <h3 className="text-2xl sm:text-3xl font-serif text-charcoal font-normal">
                       Confirm Response for {activeGuest.name}
                     </h3>
                     <p className="text-xs sm:text-sm text-charcoal-light font-serif mt-1">
-                      Check your Yes/No choices in the cards above, then confirm your details below by {weddingConfig.rsvp.deadline}.
+                      Check each family member's Yes/No choices in the ceremony cards above, then submit below by {weddingConfig.rsvp.deadline}.
                     </p>
                   </div>
 
-                  {/* Attendees Count */}
-                  <div>
-                    <label className="block text-xs uppercase tracking-wider font-semibold text-charcoal mb-2">
-                      Total Number of Attendees
-                    </label>
-                    <select
-                      value={guestCount}
-                      onChange={(e) => setGuestCount(Number(e.target.value))}
-                      className="w-full px-4 py-2.5 rounded-xl bg-ivory-100 border border-gold/30 text-charcoal text-sm focus:border-gold focus:outline-none"
-                    >
-                      {[1, 2, 3, 4, 5].map((n) => (
-                        <option key={n} value={n}>
-                          {n} {n === 1 ? 'Guest' : 'Guests'}
-                        </option>
+                  {/* Family Members Summary Card */}
+                  <div className="p-4 rounded-xl bg-ivory-100 border border-gold/30">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs uppercase tracking-wider font-semibold text-charcoal">
+                        Family Party ({familyMembers.length} Guests)
+                      </span>
+                      <span className="text-xs text-gold-dark font-serif font-medium">
+                        {activeGuest.familyGroupName || 'The Goswami Family'}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+                      {familyMembers.map((m) => (
+                        <div key={m.id} className="p-2 rounded-lg bg-ivory-50 border border-gold/20 text-center">
+                          <span className="font-serif font-semibold text-xs text-charcoal block">
+                            {m.name}
+                          </span>
+                          <span className="text-[10px] text-charcoal-light block">
+                            {m.relationship}
+                          </span>
+                        </div>
                       ))}
-                    </select>
-                    <p className="text-[11px] text-gold-dark font-serif italic mt-1.5">
+                    </div>
+                    <p className="text-[11px] text-gold-dark font-serif italic mt-3">
                       All wedding celebrations feature traditional, 100% vegetarian culinary spreads.
                     </p>
                   </div>
@@ -632,7 +820,7 @@ export const GuestLookupSection: React.FC = () => {
                     className="w-full py-4 rounded-full bg-maroon hover:bg-maroon-dark text-ivory-50 text-xs sm:text-sm font-semibold tracking-widest uppercase shadow-md hover:shadow-lg transition-all duration-200 border border-gold/40 flex items-center justify-center space-x-2"
                   >
                     <Send className="w-4 h-4 text-gold-light" />
-                    <span>Submit Complete RSVP</span>
+                    <span>Submit Complete Family RSVP</span>
                   </button>
                 </form>
               )}
