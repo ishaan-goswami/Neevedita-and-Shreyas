@@ -98,7 +98,7 @@ export const HostPortal: React.FC<HostPortalProps> = ({ onClose }) => {
         return resp === 'yes' ? 'Yes (Attending)' : 'No (Declined)';
       });
 
-      const partyName = r.familyGroupName ? `${r.guestName} (${r.familyGroupName})` : r.guestName;
+      const partyName = r.familyMembers && r.familyMembers.length > 1 ? `${r.guestName} & Family` : r.guestName;
 
       return [
         `"${partyName}"`,
@@ -431,7 +431,9 @@ export const HostPortal: React.FC<HostPortalProps> = ({ onClose }) => {
                     <tr key={record.id} className="hover:bg-gold-light/10 transition-colors">
                       <td className="px-5 py-4">
                         <div className="font-serif font-semibold text-sm text-charcoal">
-                          {record.guestName}
+                          {record.familyMembers && record.familyMembers.length > 1
+                            ? `${record.guestName} & Family`
+                            : record.guestName}
                         </div>
                         {record.familyMembers && record.familyMembers.length > 1 && (
                           <span className="text-[10px] text-gold-dark font-sans block mt-0.5">

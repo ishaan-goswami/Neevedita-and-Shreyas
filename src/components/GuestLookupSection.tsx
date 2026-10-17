@@ -29,7 +29,6 @@ import {
 export const GuestLookupSection: React.FC = () => {
   const [searchInput, setSearchInput] = useState('');
   const [activeGuest, setActiveGuest] = useState<GuestProfile | null>(null);
-  const [searchedName, setSearchedName] = useState('');
   const [notFoundName, setNotFoundName] = useState<string | null>(null);
 
   // Per-member per-event responses: { [memberId]: { [eventId]: 'yes' | 'no' } }
@@ -45,6 +44,13 @@ export const GuestLookupSection: React.FC = () => {
       ? [activeGuest, ...getFamilyMembers(activeGuest.familyId).filter((m) => m.id !== activeGuest.id)]
       : [activeGuest]
     : [];
+
+  // Dynamic invitation display title (e.g. "Ishaan Goswami & Family" or "Yogesh Goswami & Family")
+  const invitationDisplayName = activeGuest
+    ? familyMembers.length > 1
+      ? `${activeGuest.name} & Family`
+      : activeGuest.name
+    : '';
 
   // Filter events based on active guest invitation (all 5 for family)
   const invitedEvents: WeddingEvent[] = activeGuest
@@ -94,7 +100,6 @@ export const GuestLookupSection: React.FC = () => {
     const query = (nameToSearch !== undefined ? nameToSearch : searchInput).trim();
     if (!query) return;
 
-    setSearchedName(query);
     const matched = lookupGuest(query);
 
     if (matched) {
@@ -153,7 +158,6 @@ export const GuestLookupSection: React.FC = () => {
     setActiveGuest(null);
     setNotFoundName(null);
     setSearchInput('');
-    setSearchedName('');
     setIsRsvpSubmitted(false);
     setMemberResponses({});
     setBlessingMessage('');
@@ -227,7 +231,7 @@ export const GuestLookupSection: React.FC = () => {
       id: `rsvp-${Date.now()}`,
       guestName: activeGuest.name,
       familyId: activeGuest.familyId,
-      familyGroupName: activeGuest.familyGroupName,
+      familyGroupName: invitationDisplayName,
       familyMembers: familyMembers.map((m) => m.name),
       guestCount: familyMembers.length,
       eventResponses,
@@ -269,7 +273,6 @@ export const GuestLookupSection: React.FC = () => {
   };
 
   const generateWhatsAppUrl = () => {
-    const name = activeGuest?.name || searchedName;
     const isGroup = familyMembers.length > 1;
 
     const eventSummaries = weddingConfig.events
@@ -290,8 +293,8 @@ export const GuestLookupSection: React.FC = () => {
     const text = encodeURIComponent(
       `*Wedding RSVP Confirmation for Neevedita & Shreyas*\n` +
       `📍 Location: Atlanta, Georgia (May 28-30)\n` +
-      `👤 Responding Guest: ${name}\n` +
-      (isGroup ? `👥 Party (${familyMembers.length} Guests): ${familyMembers.map((m) => m.name).join(', ')}\n\n` : '\n') +
+      `👤 Invitation: ${invitationDisplayName}\n` +
+      (isGroup ? `👥 Guests (${familyMembers.length}): ${familyMembers.map((m) => m.name).join(', ')}\n\n` : '\n') +
       `*Ceremony Attendance:*\n${eventSummaries}\n\n` +
       `💌 Message: ${blessingMessage || 'Looking forward to celebrating with you!'}`
     );
@@ -403,7 +406,7 @@ export const GuestLookupSection: React.FC = () => {
                   </span>
 
                   <h3 className="text-2xl sm:text-3xl md:text-4xl font-serif text-charcoal font-normal">
-                    Welcome, {activeGuest.name}
+                    Welcome, {invitationDisplayName}
                   </h3>
 
                   <p className="text-xs sm:text-sm text-gold-dark font-serif italic mt-1">
@@ -414,7 +417,7 @@ export const GuestLookupSection: React.FC = () => {
                     <div className="mt-3 flex items-center space-x-2 text-xs text-charcoal-light">
                       <Users className="w-4 h-4 text-maroon" />
                       <span>
-                        Group Invitation • <strong>Party of {familyMembers.length}</strong> ({familyMembers.map((m) => m.name).join(', ')})
+                        Invitation for <strong>{invitationDisplayName}</strong> ({familyMembers.length} Guests: {familyMembers.map((m) => m.name).join(', ')})
                       </span>
                     </div>
                   )}
@@ -450,7 +453,7 @@ export const GuestLookupSection: React.FC = () => {
                     <div className="flex items-center space-x-2 mb-1">
                       <Users className="w-4 h-4 text-maroon" />
                       <h4 className="text-sm sm:text-base font-serif font-semibold text-charcoal">
-                        Group RSVP (Party of {familyMembers.length})
+                        RSVP for {invitationDisplayName}
                       </h4>
                     </div>
                     <p className="text-xs text-charcoal-light font-serif">
@@ -724,7 +727,7 @@ export const GuestLookupSection: React.FC = () => {
                     <CheckCircle2 className="w-7 h-7" />
                   </div>
                   <h3 className="text-2xl sm:text-3xl font-serif text-charcoal">
-                    RSVP Recorded for {activeGuest.name} {familyMembers.length > 1 ? `(Party of ${familyMembers.length})` : ''}!
+                    RSVP Recorded for {invitationDisplayName}!
                   </h3>
                   <p className="text-sm font-serif text-charcoal-light max-w-md mx-auto">
                     Thank you for responding on behalf of {familyMembers.map((m) => m.name).join(', ')}. Your ceremony attendance choices have been saved to the host headcount!
@@ -757,7 +760,7 @@ export const GuestLookupSection: React.FC = () => {
                       Finalize Your RSVP
                     </p>
                     <h3 className="text-2xl sm:text-3xl font-serif text-charcoal font-normal">
-                      Confirm Response for {activeGuest.name}
+                      Confirm Response for {invitationDisplayName}
                     </h3>
                     <p className="text-xs sm:text-sm text-charcoal-light font-serif mt-1">
                       Check each guest's Yes/No choices in the ceremony cards above, then submit below by {weddingConfig.rsvp.deadline}.
@@ -768,7 +771,7 @@ export const GuestLookupSection: React.FC = () => {
                   <div className="p-4 rounded-xl bg-ivory-100 border border-gold/30">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-xs uppercase tracking-wider font-semibold text-charcoal">
-                        Your Party ({familyMembers.length} Guests)
+                        {invitationDisplayName} ({familyMembers.length} {familyMembers.length === 1 ? 'Guest' : 'Guests'})
                       </span>
                     </div>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
