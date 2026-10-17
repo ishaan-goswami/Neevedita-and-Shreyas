@@ -344,7 +344,6 @@ export const GuestLookupSection: React.FC = () => {
                       setMemberResponses({});
                     }
                   }}
-                  placeholder="e.g. Yogesh Goswami, Jigna, Keya, or Ishaan"
                   className="w-full pl-12 pr-4 py-3 rounded-xl bg-ivory-50 border border-gold/40 focus:border-gold focus:outline-none text-charcoal text-sm sm:text-base transition-colors shadow-inner"
                 />
               </div>
@@ -378,7 +377,7 @@ export const GuestLookupSection: React.FC = () => {
             </p>
 
             <p className="text-xs sm:text-sm text-charcoal-light font-serif leading-relaxed mb-6">
-              Please enter your first and last name (try searching by "Yogesh Goswami", "Jigna Goswami", "Keya Goswami", or "Ishaan Goswami"). If you believe this is an error, please reach out directly to Neevedita or Shreyas.
+              Please double-check the spelling of your name. If you believe this is an error, please reach out directly to Neevedita or Shreyas.
             </p>
 
             <button
