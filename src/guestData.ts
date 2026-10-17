@@ -1,7 +1,6 @@
 export interface GuestProfile {
   id: string;
   name: string;
-  relationship?: string; // e.g. "Father", "Mother", "Sister", "Son / Self"
   allowedPlusOnes: number;
   invitedEventIds: string[]; // IDs: 'mehendi' | 'garba' | 'vidhi' | 'lagna' | 'reception'
   familyId?: string; // Grouping identifier so unrelated families with same last name aren't mixed
@@ -18,41 +17,33 @@ export const mockGuestsDatabase: GuestProfile[] = [
   {
     id: "guest-ishaan-goswami",
     name: "Ishaan Goswami",
-    relationship: "Self",
     allowedPlusOnes: 0,
     invitedEventIds: ["mehendi", "garba", "vidhi", "lagna", "reception"],
     familyId: "goswami-immediate",
-    familyGroupName: "The Goswami Family",
     note: "We are thrilled and honored to celebrate all wedding ceremonies with you and your family in Atlanta, Georgia!"
   },
   {
     id: "guest-yogesh-goswami",
     name: "Yogesh Goswami",
-    relationship: "Father",
     allowedPlusOnes: 0,
     invitedEventIds: ["mehendi", "garba", "vidhi", "lagna", "reception"],
     familyId: "goswami-immediate",
-    familyGroupName: "The Goswami Family",
     note: "We are thrilled and honored to celebrate all wedding ceremonies with you and your family in Atlanta, Georgia!"
   },
   {
     id: "guest-jigna-goswami",
     name: "Jigna Goswami",
-    relationship: "Mother",
     allowedPlusOnes: 0,
     invitedEventIds: ["mehendi", "garba", "vidhi", "lagna", "reception"],
     familyId: "goswami-immediate",
-    familyGroupName: "The Goswami Family",
     note: "We are thrilled and honored to celebrate all wedding ceremonies with you and your family in Atlanta, Georgia!"
   },
   {
     id: "guest-keya-goswami",
     name: "Keya Goswami",
-    relationship: "Sister",
     allowedPlusOnes: 0,
     invitedEventIds: ["mehendi", "garba", "vidhi", "lagna", "reception"],
     familyId: "goswami-immediate",
-    familyGroupName: "The Goswami Family",
     note: "We are thrilled and honored to celebrate all wedding ceremonies with you and your family in Atlanta, Georgia!"
   }
 ];

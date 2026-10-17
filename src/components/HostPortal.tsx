@@ -433,9 +433,9 @@ export const HostPortal: React.FC<HostPortalProps> = ({ onClose }) => {
                         <div className="font-serif font-semibold text-sm text-charcoal">
                           {record.guestName}
                         </div>
-                        {record.familyGroupName && (
+                        {record.familyMembers && record.familyMembers.length > 1 && (
                           <span className="text-[10px] text-gold-dark font-sans block mt-0.5">
-                            {record.familyGroupName} ({record.familyMembers?.join(', ') || `${record.guestCount} members`})
+                            Party of {record.familyMembers.length}: {record.familyMembers.join(', ')}
                           </span>
                         )}
                       </td>

@@ -227,7 +227,7 @@ export const GuestLookupSection: React.FC = () => {
       id: `rsvp-${Date.now()}`,
       guestName: activeGuest.name,
       familyId: activeGuest.familyId,
-      familyGroupName: activeGuest.familyGroupName || 'The Goswami Family',
+      familyGroupName: activeGuest.familyGroupName,
       familyMembers: familyMembers.map((m) => m.name),
       guestCount: familyMembers.length,
       eventResponses,
@@ -270,7 +270,7 @@ export const GuestLookupSection: React.FC = () => {
 
   const generateWhatsAppUrl = () => {
     const name = activeGuest?.name || searchedName;
-    const groupTitle = activeGuest?.familyGroupName || 'The Goswami Family';
+    const isGroup = familyMembers.length > 1;
 
     const eventSummaries = weddingConfig.events
       .map((e) => {
@@ -291,8 +291,7 @@ export const GuestLookupSection: React.FC = () => {
       `*Wedding RSVP Confirmation for Neevedita & Shreyas*\n` +
       `📍 Location: Atlanta, Georgia (May 28-30)\n` +
       `👤 Responding Guest: ${name}\n` +
-      `👨‍👩‍👧‍👦 Family: ${groupTitle} (${familyMembers.length} Members)\n` +
-      `👥 Members: ${familyMembers.map((m) => m.name).join(', ')}\n\n` +
+      (isGroup ? `👥 Party (${familyMembers.length} Guests): ${familyMembers.map((m) => m.name).join(', ')}\n\n` : '\n') +
       `*Ceremony Attendance:*\n${eventSummaries}\n\n` +
       `💌 Message: ${blessingMessage || 'Looking forward to celebrating with you!'}`
     );
@@ -415,7 +414,7 @@ export const GuestLookupSection: React.FC = () => {
                     <div className="mt-3 flex items-center space-x-2 text-xs text-charcoal-light">
                       <Users className="w-4 h-4 text-maroon" />
                       <span>
-                        Group Invitation for <strong>{activeGuest.familyGroupName || 'The Goswami Family'}</strong> ({familyMembers.length} Members)
+                        Group Invitation • <strong>Party of {familyMembers.length}</strong> ({familyMembers.map((m) => m.name).join(', ')})
                       </span>
                     </div>
                   )}
@@ -451,11 +450,11 @@ export const GuestLookupSection: React.FC = () => {
                     <div className="flex items-center space-x-2 mb-1">
                       <Users className="w-4 h-4 text-maroon" />
                       <h4 className="text-sm sm:text-base font-serif font-semibold text-charcoal">
-                        Family Group RSVP: {activeGuest.familyGroupName || 'The Goswami Family'}
+                        Group RSVP (Party of {familyMembers.length})
                       </h4>
                     </div>
                     <p className="text-xs text-charcoal-light font-serif">
-                      You are RSVPing for all {familyMembers.length} members: {familyMembers.map((m) => m.name).join(', ')}.
+                      Responding for: {familyMembers.map((m) => m.name).join(', ')}.
                     </p>
                   </div>
 
@@ -649,10 +648,11 @@ export const GuestLookupSection: React.FC = () => {
                                     <span className="text-xs font-serif font-semibold text-charcoal block">
                                       {member.name}
                                     </span>
-                                    <span className="text-[10px] text-gold-dark font-sans block">
-                                      {member.relationship}
-                                      {isSearchingGuest && ' (You / Logged in)'}
-                                    </span>
+                                    {isSearchingGuest && (
+                                      <span className="text-[10px] text-gold-dark font-sans block">
+                                        (You)
+                                      </span>
+                                    )}
                                   </div>
 
                                   <div className="inline-flex rounded-lg p-0.5 bg-ivory-100 border border-gold/30">
@@ -724,7 +724,7 @@ export const GuestLookupSection: React.FC = () => {
                     <CheckCircle2 className="w-7 h-7" />
                   </div>
                   <h3 className="text-2xl sm:text-3xl font-serif text-charcoal">
-                    RSVP Recorded for {activeGuest.name} & {activeGuest.familyGroupName || 'Family'}!
+                    RSVP Recorded for {activeGuest.name} {familyMembers.length > 1 ? `(Party of ${familyMembers.length})` : ''}!
                   </h3>
                   <p className="text-sm font-serif text-charcoal-light max-w-md mx-auto">
                     Thank you for responding on behalf of {familyMembers.map((m) => m.name).join(', ')}. Your ceremony attendance choices have been saved to the host headcount!
@@ -754,13 +754,13 @@ export const GuestLookupSection: React.FC = () => {
                 <form onSubmit={handleRsvpSubmit} className="space-y-6">
                   <div className="border-b border-gold/25 pb-4">
                     <p className="text-xs uppercase tracking-widest text-gold-dark font-semibold mb-1">
-                      Finalize Your Family RSVP
+                      Finalize Your RSVP
                     </p>
                     <h3 className="text-2xl sm:text-3xl font-serif text-charcoal font-normal">
                       Confirm Response for {activeGuest.name}
                     </h3>
                     <p className="text-xs sm:text-sm text-charcoal-light font-serif mt-1">
-                      Check each family member's Yes/No choices in the ceremony cards above, then submit below by {weddingConfig.rsvp.deadline}.
+                      Check each guest's Yes/No choices in the ceremony cards above, then submit below by {weddingConfig.rsvp.deadline}.
                     </p>
                   </div>
 
@@ -768,21 +768,20 @@ export const GuestLookupSection: React.FC = () => {
                   <div className="p-4 rounded-xl bg-ivory-100 border border-gold/30">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-xs uppercase tracking-wider font-semibold text-charcoal">
-                        Family Party ({familyMembers.length} Guests)
-                      </span>
-                      <span className="text-xs text-gold-dark font-serif font-medium">
-                        {activeGuest.familyGroupName || 'The Goswami Family'}
+                        Your Party ({familyMembers.length} Guests)
                       </span>
                     </div>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
                       {familyMembers.map((m) => (
-                        <div key={m.id} className="p-2 rounded-lg bg-ivory-50 border border-gold/20 text-center">
+                        <div key={m.id} className="p-2.5 rounded-lg bg-ivory-50 border border-gold/20 text-center">
                           <span className="font-serif font-semibold text-xs text-charcoal block">
                             {m.name}
                           </span>
-                          <span className="text-[10px] text-charcoal-light block">
-                            {m.relationship}
-                          </span>
+                          {m.id === activeGuest.id && (
+                            <span className="text-[10px] text-gold-dark font-sans block mt-0.5">
+                              (You)
+                            </span>
+                          )}
                         </div>
                       ))}
                     </div>
